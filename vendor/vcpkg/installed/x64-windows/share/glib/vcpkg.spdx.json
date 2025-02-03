@@ -1,0 +1,177 @@
+{
+  "$schema": "https://raw.githubusercontent.com/spdx/spdx-spec/v2.2.1/schemas/spdx-schema.json",
+  "spdxVersion": "SPDX-2.2",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "documentNamespace": "https://spdx.org/spdxdocs/glib-x64-windows-2.80.0#1-9b00540a-0991-4610-85a6-a3d1c1b5b23a",
+  "name": "glib:x64-windows@2.80.0#1 9fadeec159810600b1abe7783116d36e39bf92629977708fbe477c75375881f9",
+  "creationInfo": {
+    "creators": [
+      "Tool: vcpkg-2024-11-12-eb492805e92a2c14a230f5c3deb3e89f6771c321"
+    ],
+    "created": "2025-01-17T06:42:07Z"
+  },
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-port",
+      "relationshipType": "GENERATES",
+      "relatedSpdxElement": "SPDXRef-binary"
+    },
+    {
+      "spdxElementId": "SPDXRef-port",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-file-0"
+    },
+    {
+      "spdxElementId": "SPDXRef-port",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-file-1"
+    },
+    {
+      "spdxElementId": "SPDXRef-port",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-file-2"
+    },
+    {
+      "spdxElementId": "SPDXRef-port",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-file-3"
+    },
+    {
+      "spdxElementId": "SPDXRef-port",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-file-4"
+    },
+    {
+      "spdxElementId": "SPDXRef-binary",
+      "relationshipType": "GENERATED_FROM",
+      "relatedSpdxElement": "SPDXRef-port"
+    },
+    {
+      "spdxElementId": "SPDXRef-file-0",
+      "relationshipType": "CONTAINED_BY",
+      "relatedSpdxElement": "SPDXRef-port"
+    },
+    {
+      "spdxElementId": "SPDXRef-file-1",
+      "relationshipType": "CONTAINED_BY",
+      "relatedSpdxElement": "SPDXRef-port"
+    },
+    {
+      "spdxElementId": "SPDXRef-file-2",
+      "relationshipType": "CONTAINED_BY",
+      "relatedSpdxElement": "SPDXRef-port"
+    },
+    {
+      "spdxElementId": "SPDXRef-file-3",
+      "relationshipType": "CONTAINED_BY",
+      "relatedSpdxElement": "SPDXRef-port"
+    },
+    {
+      "spdxElementId": "SPDXRef-file-4",
+      "relationshipType": "CONTAINED_BY",
+      "relatedSpdxElement": "SPDXRef-port"
+    }
+  ],
+  "packages": [
+    {
+      "name": "glib",
+      "SPDXID": "SPDXRef-port",
+      "versionInfo": "2.80.0#1",
+      "downloadLocation": "git+https://github.com/Microsoft/vcpkg#ports/glib",
+      "homepage": "https://developer.gnome.org/glib/",
+      "licenseConcluded": "LGPL-2.1-or-later",
+      "licenseDeclared": "NOASSERTION",
+      "copyrightText": "NOASSERTION",
+      "description": "Portable, general-purpose utility library.",
+      "comment": "This is the port (recipe) consumed by vcpkg."
+    },
+    {
+      "name": "glib:x64-windows",
+      "SPDXID": "SPDXRef-binary",
+      "versionInfo": "9fadeec159810600b1abe7783116d36e39bf92629977708fbe477c75375881f9",
+      "downloadLocation": "NONE",
+      "licenseConcluded": "LGPL-2.1-or-later",
+      "licenseDeclared": "NOASSERTION",
+      "copyrightText": "NOASSERTION",
+      "comment": "This is a binary package built by vcpkg."
+    },
+    {
+      "SPDXID": "SPDXRef-resource-1",
+      "name": "glib-${VERSION}.tar.xz",
+      "packageFileName": "glib-${VERSION}.tar.xz",
+      "downloadLocation": "https://download.gnome.org/sources/glib/${GLIB_MAJOR_MINOR}/glib-${VERSION}.tar.xz",
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "copyrightText": "NOASSERTION",
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "1514d62aeb4c4a1a1048ae0f84f7db7f0dbf355772b2dadf6a34ec547045b163a5e28331b096e7616fe3c9c19bed98025a0202b05073f5d7ee901d0efaffe143"
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "fileName": "./Z:/git/vcpkg/ports/glib/0005-pr-4133-4143-avoid-package-packaging.patch",
+      "SPDXID": "SPDXRef-file-0",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "fbb9f6cadc0e4db1145d91e13602feebf868e3f7e9f76a5ced46f0b23206643e"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    },
+    {
+      "fileName": "./Z:/git/vcpkg/ports/glib/libintl.patch",
+      "SPDXID": "SPDXRef-file-1",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "cd1e15ff1024c05de5f291ec21b8d276f9c6fbb3686ca7d13871aa174b66b900"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    },
+    {
+      "fileName": "./Z:/git/vcpkg/ports/glib/portfile.cmake",
+      "SPDXID": "SPDXRef-file-2",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "2dc48b5b0636c603454ee060832e13d472181845397683e5c1af68b11fdd55a0"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    },
+    {
+      "fileName": "./Z:/git/vcpkg/ports/glib/use-libiconv-on-windows.patch",
+      "SPDXID": "SPDXRef-file-3",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "088f5ef3217780b1fcd19b68a22eb2ff93f149980136df22c7f34c1257f62c98"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    },
+    {
+      "fileName": "./Z:/git/vcpkg/ports/glib/vcpkg.json",
+      "SPDXID": "SPDXRef-file-4",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "49d3ada41d100fcae18c7eeba79a71c766bb8c38c28e9893df6303ed949e4168"
+        }
+      ],
+      "licenseConcluded": "NOASSERTION",
+      "copyrightText": "NOASSERTION"
+    }
+  ]
+}

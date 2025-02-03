@@ -1,0 +1,6 @@
+/[Bb]uild/
+/.vscode/
+# /vendor/
+main.c
+CMakePresets.json
+CMakeUserPresets.json
