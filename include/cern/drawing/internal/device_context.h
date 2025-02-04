@@ -10,8 +10,7 @@ G_BEGIN_DECLS
 #include "cern/drawing/internal/gdi_object_type.h"
 #include <Windows.h>
 
-#define CERN_TYPE_DEVICE_CONTEXT \
-cern_device_context_get_type ()
+#define CERN_TYPE_DEVICE_CONTEXT cern_device_context_get_type ()
 
 G_DECLARE_DERIVABLE_TYPE(CernDeviceContext,
                          cern_device_context,

@@ -39,12 +39,12 @@ add_library (cern_drawing
     src/drawing/gdi/image_format.c
     src/drawing/gdi/frame_dimension.c
     src/drawing/gdi/graphics_context.c
-    src/drawing/gdi/device_context.c
 
     src/drawing/gdi/pen.c
     src/drawing/gdi/brush.c
     src/drawing/gdi/solid_brush.c
 
+    src/drawing/gdi/2d/matrix.c
     src/drawing/gdi/2d/hatch_brush.c
     src/drawing/gdi/2d/region_data.c
     src/drawing/gdi/2d/graphics_path.c
@@ -53,6 +53,7 @@ add_library (cern_drawing
 
     src/drawing/gdi/imaging/bitmap_data.c
 
+    src/drawing/gdi/internal/device_context.c
     src/drawing/gdi/internal/color_translator.c
     src/drawing/gdi/internal/i_device_context.c
     src/drawing/gdi/internal/native_gdi_object.c)

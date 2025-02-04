@@ -3,10 +3,15 @@
 #include "cern/drawing/graphics_context.h"
 #include "cern/drawing/2d/graphics_state.h"
 #include "cern/drawing/internal/i_device_context.h"
+#include "cern/drawing/internal/device_context.h"
+#include "cern/drawing/image.h"
+#include "cern/drawing/matrix.h"
 
 
 #include <Windows.h>
 #include <gdiplus.h>
+
+#define NGDI_HANDLE(PTR)
 
 static
 gpointer
@@ -22,10 +27,18 @@ cern_graphics_get_handle_image(CernImage *image) {
 
 static
 GpRegion *
-cern_graphics_region_get_handle(CernRegion *region) {
+cern_graphics_get_handle_region(CernRegion *region) {
   CernNativeGdiObject *object;
 
   object = CERN_NATIVE_GDI_OBJECT(region);
+  return cern_native_gdi_object_get_native_handle(object);
+}
+
+static
+gpointer
+cern_graphics_get_handle_matrix(CernMatrix *matrix) {
+  CernNativeGdiObject *object;
+  object = CERN_NATIVE_GDI_OBJECT(matrix);
   return cern_native_gdi_object_get_native_handle(object);
 }
 
@@ -44,7 +57,8 @@ struct _CernGraphics {
 static
 void
 cern_graphics_device_context_interface_init(CernIDeviceContextInterface *iface) {
-  // Implementation of the interface initialization
+  iface->get_hdc = (HDC(*)(CernIDeviceContext *)) cern_graphics_get_hdc;
+  iface->release_hdc = (void(*)(CernIDeviceContext *)) cern_graphics_release_hdc;
 }
 
 G_DEFINE_FINAL_TYPE_WITH_CODE(CernGraphics,
@@ -54,7 +68,39 @@ G_DEFINE_FINAL_TYPE_WITH_CODE(CernGraphics,
 
 void
 static
-cern_graphics_class_init(CernGraphicsClass *klass) { }
+cern_graphics_finalize(GObject *object) {
+
+  CernGraphics *self = CERN_GRAPHICS(object);
+
+  if (cern_graphics_get_hdc(self) != NULL) {
+    cern_graphics_release_hdc(self);
+  }
+
+  GdipDeleteGraphics(self->handle);
+  self->handle = NULL;
+
+  G_OBJECT_CLASS(cern_graphics_parent_class)->finalize(object);
+}
+
+void
+static
+cern_graphics_dispose(GObject *object) {
+  CernGraphics *self = CERN_GRAPHICS(object);
+
+  if (self->backing_image != NULL) {
+    g_clear_object(&self->backing_image);
+  }
+
+  G_OBJECT_CLASS(cern_graphics_parent_class)->dispose(object);
+}
+
+void
+static
+cern_graphics_class_init(CernGraphicsClass *klass) {
+  GObjectClass *object_class = G_OBJECT_CLASS(klass);
+  object_class->finalize = cern_graphics_finalize;
+  object_class->dispose = cern_graphics_dispose;
+}
 
 void
 static
@@ -99,91 +145,381 @@ cern_graphics_push_context(CernGraphics *self, CernGraphicsContext *context) {
   self->previous_context = context;
 }
 
+static
 CernGraphics *
-cern_graphics_new_from_hdc(gpointer hdc) {
+cern_graphics_internal_from_handle(gpointer handle) {
+  CernGraphics *self;
 
+  self = g_object_new(CERN_TYPE_GRAPHICS, NULL);
+  self->handle = handle;
+
+  return self;
 }
 
 CernGraphics *
-cern_graphics_new_from_hdc_and_hdevice(gpointer h_dc, gpointer h_device);
+cern_graphics_new_from_hdc(gpointer hdc) {
+  GpStatus status;
+  GpGraphics *graphics;
+
+  if (hdc == NULL) {
+    g_critical("Must pass in a valid DC");
+    return NULL;
+  }
+
+  status = GdipCreateFromHDC(hdc, &graphics);
+
+  if (status != Ok) {
+    g_critical("cern_graphics_new_from_hdc(...): GdipCreateFromHDC() failed: %d", status);
+    return NULL;
+  }
+
+  return cern_graphics_internal_from_handle(graphics);
+}
 
 CernGraphics *
-cern_graphics_new_from_hwnd(gpointer h_wnd);
+cern_graphics_new_from_hdc_and_hdevice(gpointer h_dc, gpointer h_device) {
+  GpStatus status;
+  GpGraphics *graphics;
+
+  if (h_dc == NULL || h_device == NULL) {
+    g_critical("Must pass in a valid DC and Device");
+    return NULL;
+  }
+
+  status = GdipCreateFromHDC2(h_dc, h_device, &graphics);
+
+  if (status != Ok) {
+    g_critical("cern_graphics_new_from_hdc_and_hdevice(...): GdipCreateFromHDC2() failed: %d", status);
+    return NULL;
+  }
+
+  return cern_graphics_internal_from_handle(graphics);
+}
 
 CernGraphics *
-cern_graphics_new_from_image(CernImage *image);
+cern_graphics_new_from_hwnd(gpointer h_wnd) {
+  GpStatus status;
+  GpGraphics *graphics;
+
+  status = GdipCreateFromHWND(h_wnd, &graphics);
+
+  if (status != Ok) {
+    g_critical("cern_graphics_new_from_hwnd(...): GdipCreateFromHWND() failed: %d", status);
+    return NULL;
+  }
+
+  return cern_graphics_internal_from_handle(graphics);
+}
+
+CernGraphics *
+cern_graphics_new_from_image(CernImage *image) {
+  GpStatus status;
+  GpGraphics *graphics;
+  CernNativeGdiObject *native_image;
+
+  if (cern_image_get_pixel_format(image) & CernPixelFormat_Indexed) {
+    g_critical("cern_graphics_new_from_image(...): Indexed images are not supported");
+    return NULL;
+  }
+
+  status
+    = GdipGetImageGraphicsContext(cern_native_gdi_object_get_native_handle(native_image),
+                                  &graphics);
+
+  if (status != Ok) {
+    g_critical("cern_graphics_new_from_image(...): GdipGetImageGraphicsContext() failed: %d", status);
+    return NULL;
+  }
+
+  return cern_graphics_internal_from_handle(graphics);
+}
 
 /* functions */
 
 gpointer
-cern_graphics_get_hdc(CernGraphics *self);
+cern_graphics_get_hdc(CernGraphics *self) {
+  HDC hdc;
+  GpStatus status;
+
+  status = GdipGetDC(self->handle, &hdc);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_get_hdc(...): GdipGetDC() failed");
+    return NULL;
+  }
+
+  return (gpointer) hdc;
+}
 
 void
-cern_graphics_release_hdc(CernGraphics *self);
+cern_graphics_release_hdc(CernGraphics *self) {
+  cern_graphics_rlease_hdc_value(self, self->hdc);
+}
 
 void
-cern_graphics_flush(CernGraphics *self);
+cern_graphics_rlease_hdc_value(CernGraphics *self, gpointer hdc) {
+  GpStatus status;
+
+  status = GdipReleaseDC(self->handle, hdc);
+
+  if (status!= Ok) {
+    g_warning("cern_graphics_release_hdc_value(...): GdipReleaseDC() failed");
+    return;
+  }
+
+  self->hdc = NULL;
+}
+
+void
+cern_graphics_flush(CernGraphics *self) {
+  cern_graphics_flush_with_intention(self, CernFlushIntention_Flush);
+}
 
 void
 cern_graphics_flush_with_intention(CernGraphics *self,
-                                   CernFlushIntention intention);
+                                   CernFlushIntention intention) {
+  GpStatus status;
+
+  status = GdipFlush(self->handle, intention);
+
+  if (status!= Ok) {
+    g_warning("cern_graphics_flush_with_intention(...): GdipFlush() failed");
+    return;
+  }
+}
 
 CernCompositingMode
-cern_graphics_get_compositing_mode(CernGraphics *self);
+cern_graphics_get_compositing_mode(CernGraphics *self) {
+  GpStatus status;
+  CernCompositingMode mode;
+
+  status = GdipGetCompositingMode(self->handle, (CompositingMode *) &mode);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_get_compositing_mode(...): GdipGetCompositingMode() failed: %d", status);
+    return CernCompositingMode_SourceOver;
+  }
+
+  return mode;
+}
+
 
 void
 cern_graphics_set_compositing_mode(CernGraphics *self,
-                                   CernCompositingMode mode);
+                                   CernCompositingMode mode) {
+  GpStatus status;
 
-CernPoint *
-cern_graphics_get_rendering_origin(CernGraphics *self);
+  status = GdipSetCompositingMode(self->handle, (CompositingMode) mode);
+
+  if (status!= Ok) {
+    g_warning("cern_graphics_set_compositing_mode(...): GdipSetCompositingMode() failed: %d", status);
+    return;
+  }
+}
+
+CernPoint
+cern_graphics_get_rendering_origin(CernGraphics *self) {
+  GpStatus status;
+  GpPoint point;
+
+  status = GdipGetRenderingOrigin(self->handle, &point.X, &point.Y);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_get_rendering_origin(...): GdipGetRenderingOrigin() failed: %d", status);
+    return cern_point_create(-1, -1);
+  }
+
+  return cern_point_create(point.X, point.Y);
+}
 
 void
-cern_graphics_set_render_origin(CernGraphics *self, CernPoint *origin);
+cern_graphics_set_render_origin(CernGraphics *self, CernPoint *origin) {
+  GpStatus status;
+
+  status = GdipSetRenderingOrigin(self->handle, origin->x, origin->y);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_set_render_origin(...): GdipSetRenderingOrigin() failed: %d", status);
+    return;
+  }
+}
 
 CernCompositingQuality
-cern_graphics_get_compositing_quality(CernGraphics *self);
+cern_graphics_get_compositing_quality(CernGraphics *self) {
+  GpStatus status;
+  CernCompositingQuality quality;
+
+  status
+    = GdipGetCompositingQuality(self->handle, (CompositingQuality *) &quality);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_get_compositing_quality(...): GdipGetCompositingQuality() failed: %d", status);
+    return CernCompositingQuality_Invalid;
+  }
+
+  return quality;
+}
 
 void
 cern_graphics_set_compositing_quality(CernGraphics *self,
-                                      CernCompositingQuality quality);
+                                      CernCompositingQuality quality) {
+  GpStatus status;
+
+  status
+    = GdipSetCompositingQuality(self->handle, (CompositingQuality) quality);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_set_compositing_quality(...): GdipSetCompositingQuality() failed: %d", status);
+    return;
+  }
+}
 
 CernTextRenderingHint
-cern_graphics_get_text_rendering_hint(CernGraphics *self);
+cern_graphics_get_text_rendering_hint(CernGraphics *self) {
+  GpStatus status;
+  CernTextRenderingHint hint;
+
+  status = GdipGetTextRenderingHint(self->handle, (TextRenderingHint *) &hint);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_get_text_rendering_hint(...): GdipGetTextRenderingHint() failed: %d", status);
+    return CernTextRenderingHint_SystemDefault;
+  }
+
+  return hint;
+}
 
 void
 cern_graphics_set_text_rendering_hint(CernGraphics *self,
-                                      CernTextRenderingHint hint);
+                                      CernTextRenderingHint hint) {
+  GpStatus status;
 
-gint32
-cern_graphics_get_text_contrast(CernGraphics *self);
+  status = GdipSetTextRenderingHint(self->handle, (TextRenderingHint) hint);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_set_text_rendering_hint(...): GdipSetTextRenderingHint() failed: %d", status);
+    return;
+  }
+}
+
+guint32
+cern_graphics_get_text_contrast(CernGraphics *self) {
+  GpStatus status;
+  guint32 contrast;
+
+  status = GdipGetTextContrast(self->handle, &contrast);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_get_text_contrast(...): GdipGetTextContrast() failed: %d", status);
+    return 0;
+  }
+
+  return contrast;
+}
 
 void
-cern_graphics_set_text_contrast(CernGraphics *self, gint32 contrast);
+cern_graphics_set_text_contrast(CernGraphics *self, guint32 contrast) {
+  GpStatus status;
+
+  status = GdipSetTextContrast(self->handle, contrast);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_set_text_contrast(...): GdipSetTextContrast() failed: %d", status);
+    return;
+  }
+}
 
 CernSmoothingMode
-cern_graphics_get_smoothing_mode(CernGraphics *self);
+cern_graphics_get_smoothing_mode(CernGraphics *self) {
+  GpStatus status;
+  CernSmoothingMode mode;
+
+  status = GdipGetSmoothingMode(self->handle, (SmoothingMode *) &mode);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_get_smoothing_mode(...): GdipGetSmoothingMode() failed: %d", status);
+    return CernSmoothingMode_Invalid;
+  }
+
+  return mode;
+}
 
 void
-cern_graphics_set_smoothing_mode(CernGraphics *self, CernSmoothingMode mode);
+cern_graphics_set_smoothing_mode(CernGraphics *self, CernSmoothingMode mode) {
+  GpStatus status;
+
+  status = GdipSetSmoothingMode(self->handle, (SmoothingMode) mode);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_set_smoothing_mode(...): GdipSetSmoothingMode() failed: %d", status);
+    return;
+  }
+}
 
 CernPixelOffsetMode
-cern_graphics_get_pixel_offset_mode(CernGraphics *self);
+cern_graphics_get_pixel_offset_mode(CernGraphics *self) {
+  GpStatus status;
+  CernPixelOffsetMode mode;
+
+  status = GdipGetPixelOffsetMode(self->handle, (PixelOffsetMode *) &mode);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_get_pixel_offset_mode(...): GdipGetPixelOffsetMode() failed: %d", status);
+    return CernPixelOffsetMode_Invalid;
+  }
+
+  return mode;
+}
 
 void
-cern_graphics_set_pixel_offset_mode(CernGraphics *self, CernPixelOffsetMode mode);
+cern_graphics_set_pixel_offset_mode(CernGraphics *self,
+                                    CernPixelOffsetMode mode) {
+  GpStatus status;
+
+  status = GdipSetPixelOffsetMode(self->handle, (PixelOffsetMode) mode);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_set_pixel_offset_mode(...): GdipSetPixelOffsetMode() failed: %d", status);
+    return;
+  }
+}
 
 GObject *
-cern_graphics_get_printing_helper(CernGraphics *self);
+cern_graphics_get_printing_helper(CernGraphics *self) {
+  return self->printing_helper;
+}
 
 void
-cern_graphics_set_printing_helper(CernGraphics *self, GObject *helper);
+cern_graphics_set_printing_helper(CernGraphics *self, GObject *helper) {
+  self->printing_helper = g_object_ref(helper);
+}
 
 CernInterpolationMode
-cern_graphics_get_interpolation_mode(CernGraphics *self);
+cern_graphics_get_interpolation_mode(CernGraphics *self) {
+  GpStatus status;
+  CernInterpolationMode mode;
+
+  status = GdipGetInterpolationMode(self->handle, (InterpolationMode *) &mode);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_get_interpolation_mode(...): GdipGetInterpolationMode() failed: %d", status);
+    return CernInterpolationMode_Invalid;
+  }
+
+  return mode;
+}
 
 void
-cern_graphics_set_interpolation_mode(CernGraphics *self, CernInterpolationMode mode);
+cern_graphics_set_interpolation_mode(CernGraphics *self, CernInterpolationMode mode) {
+  GpStatus status;
+
+  status = GdipSetInterpolationMode(self->handle, (InterpolationMode) mode);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_set_interpolation_mode(...): GdipSetInterpolationMode() failed: %d", status);
+    return;
+  }
+}
 
 CernMatrix *
 cern_graphics_get_transform(CernGraphics *self);
@@ -192,113 +528,396 @@ void
 cern_graphics_set_transform(CernGraphics *self, CernMatrix *matrix);
 
 CernGraphicsUnit
-cern_graphics_get_page_unit(CernGraphics *self);
+cern_graphics_get_page_unit(CernGraphics *self) {
+  GpStatus status;
+  CernGraphicsUnit unit;
+
+  status = GdipGetPageUnit(self->handle, (Unit *) &unit);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_get_page_unit(...): GdipGetPageUnit() failed: %d", status);
+    return CernGraphicsUnit_World;
+  }
+
+  return unit;
+}
 
 void
-cern_graphics_set_page_unit(CernGraphics *self, CernGraphicsUnit unit);
+cern_graphics_set_page_unit(CernGraphics *self, CernGraphicsUnit unit) {
+  GpStatus status;
+
+  status = GdipSetPageUnit(self->handle, (Unit) unit);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_set_page_unit(...): GdipSetPageUnit() failed: %d", status);
+    return;
+  }
+}
 
 gfloat
-cern_graphics_get_page_scale(CernGraphics *self);
+cern_graphics_get_page_scale(CernGraphics *self) {
+  GpStatus status;
+  gfloat scale;
+
+  status = GdipGetPageScale(self->handle, &scale);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_get_page_scale(...): GdipGetPageScale() failed: %d", status);
+    return 0.0;
+  }
+
+  return scale;
+}
 
 void
-cern_graphics_set_page_scale(CernGraphics *self, gfloat scale);
+cern_graphics_set_page_scale(CernGraphics *self, gfloat scale) {
+  GpStatus status;
+
+  status = GdipSetPageScale(self->handle, scale);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_set_page_scale(...): GdipSetPageScale() failed: %d", status);
+    return;
+  }
+}
 
 gfloat
-cern_graphics_get_dpy_x(CernGraphics *self);
+cern_graphics_get_dpy_x(CernGraphics *self) {
+  GpStatus status;
+  gfloat x;
+
+  status = GdipGetDpiX(self->handle, &x);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_get_dpy_x(...): GdipGetDpiX() failed: %d", status);
+    return 0.0;
+  }
+
+  return x;
+}
 
 gfloat
-cern_graphics_get_dpy_y(CernGraphics *self);
+cern_graphics_get_dpy_y(CernGraphics *self) {
+  GpStatus status;
+  gfloat y;
+
+  status = GdipGetDpiY(self->handle, &y);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_get_dpy_y(...): GdipGetDpiY() failed: %d", status);
+    return 0.0;
+  }
+
+  return y;
+}
 
 void
 cern_graphics_copy_from_screen(CernGraphics *self,
                                CernPoint *source_point,
                                CernPoint *dest_point,
-                               CernSize *region_size);
+                               CernSize *region_size) {
+  gint32 sx, sy, dx, dy;
+  sx = source_point->x;
+  sy = source_point->y;
+  dx = dest_point->x;
+  dy = dest_point->y;
+
+  cern_graphics_copy_from_screen_coords(self, sx, sy, dx, dy, region_size);
+}
 
 void
 cern_graphics_copy_from_screen_coords(CernGraphics *self,
-                                      gint source_x,
-                                      gint source_y,
-                                      gint dest_x,
-                                      gint dest_y,
-                                      CernSize *block_size);
+                                      gint32 sx,
+                                      gint32 sy,
+                                      gint32 dx,
+                                      gint32 dy,
+                                      CernSize *block_size) {
+  cern_graphics_copy_from_screen_coords_with_operation(self, sx, sy, dx, dy, block_size, CernCopyPixelOperation_SourceCopy);
+}
 void
 cern_graphics_copy_from_screen_with_operation(CernGraphics *self,
                                               CernPoint *source_point,
                                               CernPoint *dest_point,
                                               CernSize *block_size,
-                                              CernCopyPixelOperation operation);
+                                              CernCopyPixelOperation operation) {
+  gint32 sx, sy, dx, dy;
+  sx = source_point->x;
+  sy = source_point->y;
+  dx = dest_point->x;
+  dy = dest_point->y;
+
+  cern_graphics_copy_from_screen_coords_with_operation(self, sx, sy, dx, dy, block_size, operation);
+}
 
 void
 cern_graphics_copy_from_screen_coords_with_operation(CernGraphics *self,
-                                                     gint source_x,
-                                                     gint source_y,
-                                                     gint dest_x,
-                                                     gint dest_y,
+                                                     gint32 source_x,
+                                                     gint32 source_y,
+                                                     gint32 dest_x,
+                                                     gint32 dest_y,
                                                      CernSize *block_size,
-                                                     CernCopyPixelOperation operation);
+                                                     CernCopyPixelOperation operation) {
+  gint32 status;
+  DWORD error;
+  gint32 dest_width, dest_height;
+  CernIDeviceContext *current_device_context;
+  CernDeviceContext *device_context;
+  HDC screen_dc, target_dc;
+
+  switch (operation) {
+    case CernCopyPixelOperation_Blackness:
+    case CernCopyPixelOperation_NotSourceErase:
+    case CernCopyPixelOperation_NotSourceCopy:
+    case CernCopyPixelOperation_SourceErase:
+    case CernCopyPixelOperation_DestinationInvert:
+    case CernCopyPixelOperation_PatInvert:
+    case CernCopyPixelOperation_SourceInvert:
+    case CernCopyPixelOperation_SourceAnd:
+    case CernCopyPixelOperation_MergePaint:
+    case CernCopyPixelOperation_MergeCopy:
+    case CernCopyPixelOperation_SourceCopy:
+    case CernCopyPixelOperation_SourcePaint:
+    case CernCopyPixelOperation_PatCopy:
+    case CernCopyPixelOperation_PatPaint:
+    case CernCopyPixelOperation_Whiteness:
+    case CernCopyPixelOperation_CaptureBlt:
+    case CernCopyPixelOperation_NoMirrorBitmap:
+    break;
+    default:
+      g_critical("cern_graphics_copy_from_screen_coords_with_operation(...): Invalid copy pixel operation: %d", operation);
+      break;
+  }
+
+  dest_width = block_size->width;
+  dest_height = block_size->height;
+
+  current_device_context = CERN_IDEVICE_CONTEXT(self);
+  device_context = cern_device_context_new(NULL);
+
+  // FIXME: Implement this function using CernDeviceContext...
+
+  // Example implementation using CernDeviceContext:
+  screen_dc = cern_i_device_context_get_hdc(current_device_context);
+  target_dc = cern_device_context_get_hdc(device_context);
+
+  status
+    = BitBlt(screen_dc, dest_x, dest_y, dest_width, dest_height,
+             target_dc, source_x, source_y, operation);
+
+  g_clear_object(&device_context);
+
+  if (status == 0) {
+    error = GetLastError();
+    g_warning("cern_graphics_copy_from_screen_coords_with_operation(...): BitBlt() failed: %lu", error);
+  }
+}
 
 void
-cern_graphics_reset_transform(CernGraphics *self);
+cern_graphics_reset_transform(CernGraphics *self) {
+  GpStatus status;
+
+  status = GdipResetWorldTransform(self->handle);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_reset_transform(...): GdipResetTransform() failed: %d", status);
+    return;
+  }
+}
 
 void
-cern_graphics_multiply_transform(CernGraphics *self, CernMatrix *matrix);
+cern_graphics_multiply_transform(CernGraphics *self, CernMatrix *matrix) {
+  cern_graphics_multiply_transform_with_order(self, matrix, CernMatrixOrder_Prepend);
+}
 
 void
 cern_graphics_multiply_transform_with_order(CernGraphics *self,
-                                           CernMatrix *matrix,
-                                           CernMatrixOrder order);
+                                            CernMatrix *matrix,
+                                            CernMatrixOrder order) {
+  GpStatus status;
+
+  if (matrix == NULL) {
+    g_warning("cern_graphics_multiply_transform_with_order(...): Invalid matrix");
+    return;
+  }
+
+  status
+    = GdipMultiplyWorldTransform(self->handle, cern_graphics_get_handle_matrix(matrix), (GpMatrixOrder) order);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_multiply_transform_with_order(...): GdipMultiplyWorldTransform() failed: %d", status);
+    return;
+  }
+}
 
 void
-cern_graphics_translate_transform(CernGraphics *self, gfloat dx, gfloat dy);
+cern_graphics_translate_transform(CernGraphics *self, gfloat dx, gfloat dy) {
+  cern_graphics_translate_transform_with_order(self, dx, dy, CernMatrixOrder_Prepend);
+}
 
 void
 cern_graphics_translate_transform_with_order(CernGraphics *self,
                                              gfloat dx,
                                              gfloat dy,
-                                             CernMatrixOrder order);
+                                             CernMatrixOrder order) {
+  GpStatus status;
+
+  status
+    = GdipTranslateWorldTransform(self->handle, dx, dy, (GpMatrixOrder) order);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_translate_transform_with_order(...): GdipTranslateWorldTransform() failed: %d", status);
+    return;
+  }
+}
 
 void
-cern_graphics_scale_transform(CernGraphics *self, gfloat sx, gfloat sy);
+cern_graphics_scale_transform(CernGraphics *self, gfloat sx, gfloat sy) {
+  cern_graphics_scale_transform_with_order(self, sx, sy, CernMatrixOrder_Prepend);
+}
 
 void
 cern_graphics_scale_transform_with_order(CernGraphics *self,
                                          gfloat sx,
                                          gfloat sy,
-                                         CernMatrixOrder order);
+                                         CernMatrixOrder order) {
+  GpStatus status;
+
+  status
+    = GdipScaleWorldTransform(self->handle, sx, sy, (GpMatrixOrder) order);
+
+  if (status!= Ok) {
+    g_warning("cern_graphics_scale_transform_with_order(...): GdipScaleWorldTransform() failed: %d", status);
+    return;
+  }
+}
 
 void
-cern_graphics_rotate_transform(CernGraphics *self, gfloat angle);
+cern_graphics_rotate_transform(CernGraphics *self, gfloat angle) {
+  cern_graphics_rotate_transform_with_order(self, angle, CernMatrixOrder_Prepend);
+}
 
 void
 cern_graphics_rotate_transform_with_order(CernGraphics *self,
                                           gfloat angle,
-                                          CernMatrixOrder order);
+                                          CernMatrixOrder order) {
+  GpStatus status;
+
+  status
+    = GdipRotateWorldTransform(self->handle, angle, (GpMatrixOrder) order);
+
+  if (status!= Ok) {
+    g_warning("cern_graphics_rotate_transform_with_order(...): GdipRotateWorldTransform() failed: %d", status);
+    return;
+  }
+}
 
 void
 cern_graphics_transform_points_f(CernGraphics *self,
                                  CernCoordinateSpace dest_space,
                                  CernCoordinateSpace src_space,
                                  CernPointF *points,
-                                 gsize points_count);
+                                 gsize points_count) {
+  GpStatus status;
+  GpPointF *gp_points;
+
+  if (points == NULL) {
+    g_warning("cern_graphics_transform_points_f(...): Invalid points array");
+    return;
+  }
+
+  gp_points = g_new(GpPointF, points_count);
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status
+    = GdipTransformPoints(self->handle, (GpCoordinateSpace) dest_space,
+                          (GpCoordinateSpace) src_space, gp_points, points_count);
+
+  if (status!= Ok) {
+    g_warning("cern_graphics_transform_points_f(...): GdipTransformPoints() failed: %d", status);
+  } else {
+    for (gsize i = 0; i < points_count; i++) {
+      points[i].x = gp_points[i].X;
+      points[i].y = gp_points[i].Y;
+    }
+  }
+
+  g_free(gp_points);
+}
 
 void
 cern_graphics_transform_points(CernGraphics *self,
                                CernCoordinateSpace dest_space,
                                CernCoordinateSpace src_space,
                                CernPoint *points,
-                               gsize points_count);
+                               gsize points_count) {
+  GpStatus status;
+
+  GpPoint *gp_points;
+
+  if (points == NULL) {
+    g_warning("cern_graphics_transform_points(...): Invalid points array");
+    return;
+  }
+
+  gp_points = g_new(GpPoint, points_count);
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status
+    = GdipTransformPointsI(self->handle, (GpCoordinateSpace) dest_space,
+                           (GpCoordinateSpace) src_space, gp_points, points_count);
+
+  if (status!= Ok) {
+    g_warning("cern_graphics_transform_points(...): GdipTransformPointsI() failed: %d", status);
+  } else {
+    for (gsize i = 0; i < points_count; i++) {
+      points[i].x = gp_points[i].X;
+      points[i].y = gp_points[i].Y;
+    }
+  }
+
+  g_free(gp_points);
+}
 
 CernColor *
 cern_graphics_get_nearest_color(CernGraphics *self, CernColor *color);
 
 void
 cern_graphics_draw_line(CernGraphics *self, CernPen *pen,
-                        gfloat x1, gfloat y1, gfloat x2, gfloat y2);
+                        gfloat x1, gfloat y1, gfloat x2, gfloat y2) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_line(...): Invalid pen");
+    return;
+  }
+
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  status = GdipDrawLine(self->handle, pen_ptr, x1, y1, x2, y2);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_line(...): GdipDrawLine() failed: %d", status);
+    return;
+  }
+}
 
 void
 cern_graphics_draw_line_points_f(CernGraphics *self, CernPen *pen,
-                                 CernPointF *pt1, CernPointF *pt2);
+                                 CernPointF *pt1, CernPointF *pt2) {
+
+}
 
 void
 cern_graphics_draw_lines_f(CernGraphics *self, CernPen *pen,
@@ -869,7 +1488,7 @@ cern_graphics_set_clip_region(CernGraphics *self, CernRegion *region,
     return;
   }
 
-  native_region = cern_graphics_region_get_handle(region);
+  native_region = cern_graphics_get_handle_region(region);
 
   status = GdipSetClipRegion(self->handle, native_region, (CombineMode) combine_mode);
 
@@ -912,7 +1531,7 @@ cern_graphics_intersect_clip_region(CernGraphics *self, CernRegion *region) {
     return;
   }
 
-  reg = cern_graphics_region_get_handle(region);
+  reg = cern_graphics_get_handle_region(region);
 
   status
     = GdipSetClipRegion(self->handle, reg, CombineModeIntersect);

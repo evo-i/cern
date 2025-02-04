@@ -65,6 +65,9 @@ void
 cern_graphics_release_hdc(CernGraphics *self);
 
 void
+cern_graphics_rlease_hdc_value(CernGraphics *self, gpointer hdc);
+
+void
 cern_graphics_flush(CernGraphics *self);
 
 void
@@ -78,7 +81,7 @@ void
 cern_graphics_set_compositing_mode(CernGraphics *self,
                                    CernCompositingMode mode);
 
-CernPoint *
+CernPoint
 cern_graphics_get_rendering_origin(CernGraphics *self);
 
 void
@@ -98,11 +101,11 @@ void
 cern_graphics_set_text_rendering_hint(CernGraphics *self,
                                       CernTextRenderingHint hint);
 
-gint32
+guint32
 cern_graphics_get_text_contrast(CernGraphics *self);
 
 void
-cern_graphics_set_text_contrast(CernGraphics *self, gint32 contrast);
+cern_graphics_set_text_contrast(CernGraphics *self, guint32 contrast);
 
 CernSmoothingMode
 cern_graphics_get_smoothing_mode(CernGraphics *self);
