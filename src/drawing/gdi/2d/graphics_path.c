@@ -1,5 +1,6 @@
 #include "cern/drawing/2d/graphics_path.h"
 #include "cern/core/icloneable.h"
+#include "cern/drawing/internal/native_gdi_object.h"
 
 #include <Windows.h>
 #include <gdiplus.h>
@@ -13,14 +14,35 @@ struct _CernGraphicsPath {
 static
 void
 cern_graphics_path_cloneable_iface(CernICLoneableInterface *iface) {
-  // Implement the clone method for CernGraphicsPath
+  iface->clone
+    = (CernICLoneable *(*)(CernICLoneable *)) cern_graphics_path_clone;
+}
+
+gpointer
+cern_graphics_path_get_native_handle(CernGraphicsPath *self) {
+  return self->handle;
+}
+
+void
+cern_graphics_path_set_native_handle(CernGraphicsPath *self, gpointer handle) {
+  self->handle = handle;
+}
+
+static
+void
+cern_graphics_path_native_gdi_object_iface(CernNativeGdiObjectInterface *iface) {
+  iface->get_native_handle
+    = (gpointer(*)(CernNativeGdiObject *)) cern_graphics_path_get_native_handle;
+  iface->set_native_handle
+    = (void(*)(CernNativeGdiObject *, gpointer)) cern_graphics_path_set_native_handle;
 }
 
 G_DEFINE_FINAL_TYPE_WITH_CODE(
   CernGraphicsPath,
   cern_graphics_path,
   G_TYPE_OBJECT,
-  G_IMPLEMENT_INTERFACE(CERN_TYPE_ICLONEABLE, cern_graphics_path_cloneable_iface))
+  G_IMPLEMENT_INTERFACE(CERN_TYPE_ICLONEABLE, cern_graphics_path_cloneable_iface)
+  G_IMPLEMENT_INTERFACE(CERN_TYPE_NATIVE_GDI_OBJECT, cern_graphics_path_native_gdi_object_iface))
 
 static
 void
@@ -107,4 +129,19 @@ cern_graphics_path_new_points_fill_mode(CernPoint *points,
   g_return_val_if_fail(points != NULL, NULL);
   g_return_val_if_fail(points_count != 0, NULL);
   g_return_val_if_fail(types != NULL, NULL);
+}
+
+CernGraphicsPath *
+cern_graphics_path_clone(CernGraphicsPath *self) {
+  GpStatus status;
+  GpPath *native_path;
+
+  status = GdipClonePath(self->handle, &native_path);
+
+  if (status != Ok) {
+    g_critical("cern_graphics_path_clone(...): GdipClonePath() failed: %d", status);
+    return NULL;
+  }
+
+  return cern_graphics_path_new_from_native_handle(native_path);
 }

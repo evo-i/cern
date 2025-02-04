@@ -159,3 +159,8 @@ cern_rectangle_f_set_location(CernRectangleF *self, CernPointF *location) {
   self->x = cern_point_f_get_x(location);
   self->y = cern_point_f_get_y(location);
 }
+
+CernSizeF
+cern_rectangle_f_get_size(CernRectangleF *self) {
+  return cern_size_f_create(self->width, self->height);
+}

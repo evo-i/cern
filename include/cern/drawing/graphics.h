@@ -243,24 +243,24 @@ cern_graphics_draw_line(CernGraphics *self, CernPen *pen,
                         gfloat x1, gfloat y1, gfloat x2, gfloat y2);
 
 void
-cern_graphics_draw_line_points_f(CernGraphics *self, CernPen *pen,
-                                 CernPointF *pt1, CernPointF *pt2);
+cern_graphics_draw_line_points(CernGraphics *self, CernPen *pen,
+                               CernPointF *pt1, CernPointF *pt2);
 
 void
-cern_graphics_draw_lines_f(CernGraphics *self, CernPen *pen,
-                           CernPointF *points, gsize points_count);
+cern_graphics_draw_lines(CernGraphics *self, CernPen *pen,
+                         CernPointF *points, gsize points_count);
 
 void
 cern_graphics_draw_line_i(CernGraphics *self, CernPen *pen,
                           gint32 x1, gint32 y1, gint32 x2, gint32 y2);
 
 void
-cern_graphics_draw_line_points(CernGraphics *self, CernPen *pen,
-                               CernPoint *pt1, CernPoint *pt2);
+cern_graphics_draw_line_points_i(CernGraphics *self, CernPen *pen,
+                                 CernPoint *pt1, CernPoint *pt2);
 
 void
-cern_graphics_draw_lines(CernGraphics *self, CernPen *pen,
-                         CernPoint *points, gsize points_count);
+cern_graphics_draw_lines_i(CernGraphics *self, CernPen *pen,
+                           CernPoint *points, gsize points_count);
 
 void
 cern_graphics_draw_arc(CernGraphics *self, CernPen *pen,
@@ -268,9 +268,9 @@ cern_graphics_draw_arc(CernGraphics *self, CernPen *pen,
                        gfloat start_angle, gfloat sweep_angle);
 
 void
-cern_graphics_draw_arc_rect_f(CernGraphics *self, CernPen *pen,
-                              CernRectangleF *rect,
-                              gfloat start_angle, gfloat sweep_angle);
+cern_graphics_draw_arc_rect(CernGraphics *self, CernPen *pen,
+                            CernRectangleF *rect,
+                            gfloat start_angle, gfloat sweep_angle);
 
 void
 cern_graphics_draw_arc_i(CernGraphics *self, CernPen *pen,
@@ -278,9 +278,9 @@ cern_graphics_draw_arc_i(CernGraphics *self, CernPen *pen,
                          gint32 start_angle, gint32 sweep_angle);
 
 void
-cern_graphics_draw_arc_rect(CernGraphics *self, CernPen *pen,
-                            CernRectangle *rect,
-                            gfloat start_angle, gfloat sweep_angle);
+cern_graphics_draw_arc_rect_i(CernGraphics *self, CernPen *pen,
+                              CernRectangle *rect,
+                              gfloat start_angle, gfloat sweep_angle);
 
 void
 cern_graphics_draw_bezier(CernGraphics *self, CernPen *pen,
@@ -293,17 +293,17 @@ cern_graphics_draw_bezier_points_f(CernGraphics *self, CernPen *pen,
                                    CernPointF *pt3, CernPointF *pt4);
 
 void
-cern_graphics_draw_beziers_f(CernGraphics *self, CernPen *pen,
-                             CernPointF *points, gsize points_count);
-
-void
-cern_graphics_draw_bezier_with_points(CernGraphics *self, CernPen *pen,
-                                      CernPoint *pt1, CernPoint *pt2,
-                                      CernPoint *pt3, CernPoint *pt4);
-
-void
 cern_graphics_draw_beziers(CernGraphics *self, CernPen *pen,
-                           CernPoint *points, gsize points_count);
+                           CernPointF *points, gsize points_count);
+
+void
+cern_graphics_draw_bezier_with_points_i(CernGraphics *self, CernPen *pen,
+                                        CernPoint *pt1, CernPoint *pt2,
+                                        CernPoint *pt3, CernPoint *pt4);
+
+void
+cern_graphics_draw_beziers_i(CernGraphics *self, CernPen *pen,
+                             CernPoint *points, gsize points_count);
 
 void
 cern_graphics_draw_rectangle(CernGraphics *self, CernPen *pen,
@@ -446,10 +446,21 @@ void
 cern_graphics_fill_rectangle_i_xy(CernGraphics *self, CernBrush *brush,
                                   gint x, gint y, gint width, gint height);
 
+
 void
 cern_graphics_fill_rectangles(CernGraphics *self, CernBrush *brush,
                               CernRectangleF *rects, gsize rects_count);
 
+/**
+ * cern_graphics_fill_rectangles_i:
+ * @self: A pointer to the CernGraphics object.
+ * @brush: A pointer to the CernBrush used to fill the rectangles.
+ * @rects: A pointer to an array of CernRectangle structures representing the rectangles to be filled.
+ * @rects_count: The number of rectangles in the @rects array.
+ *
+ * Fills multiple rectangles specified by the @rects array using the given @brush.
+ * The rectangles are defined in integer coordinates.
+ */
 void
 cern_graphics_fill_rectangles_i(CernGraphics *self, CernBrush *brush,
                                 CernRectangle *rects, gsize rects_count);
@@ -472,7 +483,7 @@ cern_graphics_fill_polygon_mode(CernGraphics *self, CernBrush *brush,
                                 CernFillMode fill_mode);
 
 void
-cern_graphics_fill_polygon_i_mode(CernGraphics *self, CernBrush *brush,
+cern_graphics_fill_polygon_mode_i(CernGraphics *self, CernBrush *brush,
                                   CernPoint *points, gsize points_count,
                                   CernFillMode fill_mode);
 
@@ -482,11 +493,11 @@ cern_graphics_fill_polygon_mode_array(CernGraphics *self, CernBrush *brush,
                                       CernFillMode fill_mode);
 
 void
-cern_graphics_fill_ellipse(CernGraphics *self, CernBrush *brush,
+cern_graphics_fill_ellipse_rect(CernGraphics *self, CernBrush *brush,
                            CernRectangleF *rect);
 
 void
-cern_graphics_fill_ellipse_f(CernGraphics *self, CernBrush *brush,
+cern_graphics_fill_ellipse(CernGraphics *self, CernBrush *brush,
                              gfloat x, gfloat y, gfloat width, gfloat height);
 
 void
@@ -586,34 +597,34 @@ cern_graphics_draw_string_rect_format(CernGraphics *self, const gchar *text,
                                       CernFont *font, CernBrush *brush,
                                       CernRectangleF *layout_rectangle,
                                       CernStringFormat *format);
-CernSizeF *
+CernSizeF
 cern_graphics_measure_string(CernGraphics *self, const gchar *text,
                              CernFont *font, CernSizeF *layout_area,
                              CernStringFormat *format,
                              gint32 *characters_fitted, gint32 *lines_filled);
 
-CernSizeF *
+CernSizeF
 cern_graphics_measure_string_point_format(CernGraphics *self, const gchar *text,
                                           CernFont *font, CernPointF *origin,
                                           CernStringFormat *format);
 
-CernSizeF *
+CernSizeF
 cern_graphics_measure_string_layout(CernGraphics *self, const gchar *text,
                                    CernFont *font, CernSizeF *layout_area);
 
-CernSizeF *
+CernSizeF
 cern_graphics_measure_string_format(CernGraphics *self, const gchar *text,
                                     CernFont *font, CernSizeF *layout_area,
                                     CernStringFormat *format);
-CernSizeF *
+CernSizeF
 cern_graphics_measure_string_basic(CernGraphics *self, const gchar *text,
                                    CernFont *font);
 
-CernSizeF *
+CernSizeF
 cern_graphics_measure_string_width(CernGraphics *self, const gchar *text,
                                    CernFont *font, gint32 width);
 
-CernSizeF *
+CernSizeF
 cern_graphics_measure_string_width_format(CernGraphics *self, const gchar *text,
                                           CernFont *font, gint32 width,
                                           CernStringFormat *format);

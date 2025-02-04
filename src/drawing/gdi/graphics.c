@@ -5,7 +5,7 @@
 #include "cern/drawing/internal/i_device_context.h"
 #include "cern/drawing/internal/device_context.h"
 #include "cern/drawing/image.h"
-#include "cern/drawing/matrix.h"
+#include "cern/drawing/2d/matrix.h"
 
 
 #include <Windows.h>
@@ -31,6 +31,14 @@ cern_graphics_get_handle_region(CernRegion *region) {
   CernNativeGdiObject *object;
 
   object = CERN_NATIVE_GDI_OBJECT(region);
+  return cern_native_gdi_object_get_native_handle(object);
+}
+
+static
+GpPath *
+cern_graphics_get_handle_path(CernGraphicsPath *path) {
+  CernNativeGdiObject *object;
+  object = CERN_NATIVE_GDI_OBJECT(path);
   return cern_native_gdi_object_get_native_handle(object);
 }
 
@@ -694,9 +702,6 @@ cern_graphics_copy_from_screen_coords_with_operation(CernGraphics *self,
   current_device_context = CERN_IDEVICE_CONTEXT(self);
   device_context = cern_device_context_new(NULL);
 
-  // FIXME: Implement this function using CernDeviceContext...
-
-  // Example implementation using CernDeviceContext:
   screen_dc = cern_i_device_context_get_hdc(current_device_context);
   target_dc = cern_device_context_get_hdc(device_context);
 
@@ -914,379 +919,1958 @@ cern_graphics_draw_line(CernGraphics *self, CernPen *pen,
 }
 
 void
-cern_graphics_draw_line_points_f(CernGraphics *self, CernPen *pen,
-                                 CernPointF *pt1, CernPointF *pt2) {
-
+cern_graphics_draw_line_points(CernGraphics *self, CernPen *pen,
+                               CernPointF *pt1, CernPointF *pt2) {
+  cern_graphics_draw_line(self, pen, pt1->x, pt1->y, pt2->x, pt2->y);
 }
 
 void
-cern_graphics_draw_lines_f(CernGraphics *self, CernPen *pen,
-                           CernPointF *points, gsize points_count);
+cern_graphics_draw_lines(CernGraphics *self, CernPen *pen,
+                           CernPointF *points, gsize points_count) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+  GpPointF *gp_points;
+
+  if (points == NULL) {
+    g_critical("cern_graphics_draw_lines_f(...): Invalid points");
+    return;
+  }
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_lines_f(...): Invalid pen");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  gp_points = g_new(GpPointF, points_count);
+
+  if (gp_points == NULL) {
+    g_critical("cern_graphics_draw_lines_f(...): Out of memory");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status
+    = GdipDrawLines(self->handle, pen_ptr, gp_points, points_count);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_lines_f(...): GdipDrawLines() failed: %d", status);
+  }
+
+  g_free(gp_points);
+}
 
 void
 cern_graphics_draw_line_i(CernGraphics *self, CernPen *pen,
-                          gint32 x1, gint32 y1, gint32 x2, gint32 y2);
+                          gint32 x1, gint32 y1, gint32 x2, gint32 y2) {
+  GpStatus status;
+
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_line_i(...): Invalid pen");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  status = GdipDrawLine(self->handle, pen_ptr, x1, y1, x2, y2);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_line_i(...): GdipDrawLine() failed: %d", status);
+  }
+}
 
 void
-cern_graphics_draw_line_points(CernGraphics *self, CernPen *pen,
-                               CernPoint *pt1, CernPoint *pt2);
+cern_graphics_draw_line_points_i(CernGraphics *self, CernPen *pen,
+                                CernPoint *pt1, CernPoint *pt2) {
+  cern_graphics_draw_line_i(self, pen, pt1->x, pt1->y, pt2->x, pt2->y);
+}
 
 void
-cern_graphics_draw_lines(CernGraphics *self, CernPen *pen,
-                         CernPoint *points, gsize points_count);
+cern_graphics_draw_lines_i(CernGraphics *self, CernPen *pen,
+                           CernPoint *points, gsize points_count) {
+  GpStatus status;
+  GpPoint *gp_points;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+
+  if (points == NULL) {
+    g_critical("cern_graphics_draw_lines_i(...): Invalid points");
+    return;
+  }
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_lines_i(...): Invalid pen");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+  gp_points = g_new(GpPoint, points_count);
+
+  if (gp_points == NULL) {
+    g_critical("cern_graphics_draw_lines_i(...): Out of memory");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status
+    = GdipDrawLinesI(self->handle, pen_ptr, gp_points, points_count);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_lines_i(...): GdipDrawLinesI() failed: %d", status);
+  }
+
+  g_free(gp_points);
+}
 
 void
 cern_graphics_draw_arc(CernGraphics *self, CernPen *pen,
                        gfloat x, gfloat y, gfloat width, gfloat height,
-                       gfloat start_angle, gfloat sweep_angle);
+                       gfloat start_angle, gfloat sweep_angle) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_arc(...): Invalid pen");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  status
+    = GdipDrawArc(self->handle, pen_ptr, x, y, width, height, start_angle, sweep_angle);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_arc(...): GdipDrawArc() failed: %d", status);
+  }
+}
 
 void
-cern_graphics_draw_arc_rect_f(CernGraphics *self, CernPen *pen,
+cern_graphics_draw_arc_rect(CernGraphics *self, CernPen *pen,
                               CernRectangleF *rect,
-                              gfloat start_angle, gfloat sweep_angle);
+                              gfloat start_angle, gfloat sweep_angle) {
+  cern_graphics_draw_arc(self, pen, rect->x, rect->y, rect->width,
+                         rect->height, start_angle, sweep_angle);
+}
 
 void
 cern_graphics_draw_arc_i(CernGraphics *self, CernPen *pen,
                          gint32 x, gint32 y, gint32 width, gint32 height,
-                         gint32 start_angle, gint32 sweep_angle);
+                         gint32 start_angle, gint32 sweep_angle) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_arc_i(...): Invalid pen");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  status
+    = GdipDrawArcI(self->handle, pen_ptr, x, y, width, height, start_angle,
+                   sweep_angle);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_arc_i(...): GdipDrawArc() failed: %d", status);
+  }
+}
 
 void
-cern_graphics_draw_arc_rect(CernGraphics *self, CernPen *pen,
+cern_graphics_draw_arc_rect_i(CernGraphics *self, CernPen *pen,
                             CernRectangle *rect,
-                            gfloat start_angle, gfloat sweep_angle);
+                            gfloat start_angle, gfloat sweep_angle) {
+  cern_graphics_draw_arc_i(self, pen, rect->x, rect->y, rect->width,
+                           rect->height, start_angle, sweep_angle);
+}
 
 void
 cern_graphics_draw_bezier(CernGraphics *self, CernPen *pen,
                           gfloat x1, gfloat y1, gfloat x2, gfloat y2,
-                          gfloat x3, gfloat y3, gfloat x4, gfloat y4);
+                          gfloat x3, gfloat y3, gfloat x4, gfloat y4) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_bezier(...): Invalid pen");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  status
+    = GdipDrawBezier(self->handle, pen_ptr, x1, y1, x2, y2, x3, y3, x4, y4);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_bezier(...): GdipDrawBezier() failed: %d", status);
+  }
+}
 
 void
-cern_graphics_draw_bezier_points_f(CernGraphics *self, CernPen *pen,
-                                   CernPointF *pt1, CernPointF *pt2,
-                                   CernPointF *pt3, CernPointF *pt4);
-
-void
-cern_graphics_draw_beziers_f(CernGraphics *self, CernPen *pen,
-                             CernPointF *points, gsize points_count);
-
-void
-cern_graphics_draw_bezier_with_points(CernGraphics *self, CernPen *pen,
-                                      CernPoint *pt1, CernPoint *pt2,
-                                      CernPoint *pt3, CernPoint *pt4);
+cern_graphics_draw_bezier_points(CernGraphics *self, CernPen *pen,
+                                 CernPointF *pt1, CernPointF *pt2,
+                                 CernPointF *pt3, CernPointF *pt4) {
+  cern_graphics_draw_bezier(self, pen,
+                            pt1->x, pt1->y,
+                            pt2->x, pt2->y,
+                            pt3->x, pt3->y,
+                            pt4->x, pt4->y);
+}
 
 void
 cern_graphics_draw_beziers(CernGraphics *self, CernPen *pen,
-                           CernPoint *points, gsize points_count);
+                           CernPointF *points, gsize points_count) {
+  GpStatus status;
+  GpPointF *gp_points;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+
+  if (points == NULL) {
+    g_critical("cern_graphics_draw_beziers(...): Invalid points");
+    return;
+  }
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_beziers(...): Invalid pen");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+  gp_points = g_new(GpPointF, points_count);
+
+  if (gp_points == NULL) {
+    g_critical("cern_graphics_draw_beziers(...): Out of memory");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status
+    = GdipDrawBeziers(self->handle, pen_ptr, gp_points, points_count);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_beziers(...): GdipDrawBeziers() failed: %d", status);
+  }
+
+  g_free(gp_points);
+}
+
+void
+cern_graphics_draw_bezier_with_points_i(CernGraphics *self, CernPen *pen,
+                                        CernPoint *pt1, CernPoint *pt2,
+                                        CernPoint *pt3, CernPoint *pt4) {
+  cern_graphics_draw_bezier(self, pen,
+                            pt1->x, pt1->y,
+                            pt2->x, pt2->y,
+                            pt3->x, pt3->y,
+                            pt4->x, pt4->y);
+}
+
+void
+cern_graphics_draw_beziers_i(CernGraphics *self, CernPen *pen,
+                             CernPoint *points, gsize points_count) {
+  GpStatus status;
+  GpPoint *gp_points;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+
+  if (points == NULL) {
+    g_critical("cern_graphics_draw_beziers_i(...): Invalid points");
+    return;
+  }
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_beziers_i(...): Invalid pen");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+  gp_points = g_new(GpPoint, points_count);
+
+  if (gp_points == NULL) {
+    g_critical("cern_graphics_draw_beziers_i(...): Out of memory");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status
+    = GdipDrawBeziersI(self->handle, pen_ptr, gp_points, points_count);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_beziers_i(...): GdipDrawBeziersI() failed: %d", status);
+  }
+
+  g_free(gp_points);
+}
 
 void
 cern_graphics_draw_rectangle(CernGraphics *self, CernPen *pen,
-                            CernRectangle *rect);
+                             CernRectangle *rect) {
+  cern_graphics_draw_rectangle_i(self, pen,
+                                 rect->x, rect->y,
+                                 rect->width, rect->height);
+}
 
 void
 cern_graphics_draw_rectangle_f(CernGraphics *self, CernPen *pen,
-                               gfloat x, gfloat y, gfloat width, gfloat height);
+                               gfloat x, gfloat y, gfloat width, gfloat height) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_rectangle_f(...): Invalid pen");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  status
+    = GdipDrawRectangle(self->handle, pen_ptr, x, y, width, height);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_rectangle_f(...): GdipDrawRectangle() failed: %d", status);
+  }
+}
 
 void
 cern_graphics_draw_rectangle_i(CernGraphics *self, CernPen *pen,
-                               gint32 x, gint32 y, gint32 width, gint32 height);
+                               gint32 x, gint32 y, gint32 width, gint32 height) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_rectangle_i(...): Invalid pen");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  status
+    = GdipDrawRectangleI(self->handle, pen_ptr, x, y, width, height);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_rectangle_i(...): GdipDrawRectangleI() failed: %d", status);
+  }
+}
 
 void
 cern_graphics_draw_rectangles_f(CernGraphics *self, CernPen *pen,
-                                CernRectangleF *rects, gsize rects_count);
+                                CernRectangleF *rects, gsize rects_count) {
+  GpStatus status;
+  GpRectF *gp_rects;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+
+  if (rects == NULL) {
+    g_critical("cern_graphics_draw_rectangles_f(...): Invalid rects");
+    return;
+  }
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_rectangles_f(...): Invalid pen");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+  gp_rects = g_new(GpRectF, rects_count);
+
+  if (gp_rects == NULL) {
+    g_critical("cern_graphics_draw_rectangles_f(...): Out of memory");
+    return;
+  }
+
+  for (gsize i = 0; i < rects_count; i++) {
+    gp_rects[i].X = rects[i].x;
+    gp_rects[i].Y = rects[i].y;
+    gp_rects[i].Width = rects[i].width;
+    gp_rects[i].Height = rects[i].height;
+  }
+
+  status
+    = GdipDrawRectangles(self->handle, pen_ptr, gp_rects, rects_count);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_rectangles_f(...): GdipDrawRectangles() failed: %d", status);
+  }
+
+  g_free(gp_rects);
+}
 
 void
 cern_graphics_draw_rectangles(CernGraphics *self, CernPen *pen,
-                              CernRectangle *rects, gsize rects_count);
+                              CernRectangle *rects, gsize rects_count) {
+  GpStatus status;
+  GpRect *gp_rects;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+
+  if (rects == NULL) {
+    g_critical("cern_graphics_draw_rectangles(...): Invalid rects");
+    return;
+  }
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_rectangles(...): Invalid pen");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+  gp_rects = g_new(GpRect, rects_count);
+
+  if (gp_rects == NULL) {
+    g_critical("cern_graphics_draw_rectangles(...): Out of memory");
+    return;
+  }
+
+  for (gsize i = 0; i < rects_count; i++) {
+    gp_rects[i].X = rects[i].x;
+    gp_rects[i].Y = rects[i].y;
+    gp_rects[i].Width = rects[i].width;
+    gp_rects[i].Height = rects[i].height;
+  }
+
+  status
+    = GdipDrawRectanglesI(self->handle, pen_ptr, gp_rects, rects_count);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_rectangles(...): GdipDrawRectanglesI() failed: %d", status);
+  }
+
+  g_free(gp_rects);
+}
 
 void
 cern_graphics_draw_ellipse(CernGraphics *self, CernPen *pen,
-                           CernRectangleF *rect);
+                           CernRectangleF *rect) {
+  cern_graphics_draw_ellipse_i(self, pen,
+                               rect->x, rect->y,
+                               rect->width, rect->height);
+}
 
 void
 cern_graphics_draw_ellipse_f(CernGraphics *self, CernPen *pen,
-                             gfloat x, gfloat y, gfloat width, gfloat height);
+                             gfloat x, gfloat y, gfloat width, gfloat height) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_ellipse_f(...): Invalid pen");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  status
+    = GdipDrawEllipse(self->handle, pen_ptr, x, y, width, height);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_ellipse_f(...): GdipDrawEllipse() failed: %d", status);
+  }
+}
 
 void
 cern_graphics_draw_ellipse_rect_f(CernGraphics *self, CernPen *pen,
-                                  CernRectangleF *rect);
+                                  CernRectangleF *rect) {
+  cern_graphics_draw_ellipse_f(self, pen,
+                               rect->x, rect->y,
+                               rect->width, rect->height);
+}
 
 void
 cern_graphics_draw_ellipse_rect(CernGraphics *self, CernPen *pen,
-                                CernRectangle *rect);
+                                CernRectangle *rect) {
+  cern_graphics_draw_ellipse_i(self, pen,
+                               rect->x, rect->y,
+                               rect->width, rect->height);
+}
 
 void
 cern_graphics_draw_ellipse_i(CernGraphics *self, CernPen *pen,
-                             gint32 x, gint32 y, gint32 width, gint32 height);
+                             gint32 x, gint32 y, gint32 width, gint32 height) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_ellipse_i(...): Invalid pen");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  status
+    = GdipDrawEllipseI(self->handle, pen_ptr, x, y, width, height);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_ellipse_i(...): GdipDrawEllipseI() failed: %d", status);
+  }
+}
 
 void
 cern_graphics_draw_pie(CernGraphics *self, CernPen *pen,
                        CernRectangleF *rect, gfloat start_angle,
-                       gfloat sweep_angle);
+                       gfloat sweep_angle) {
+  cern_graphics_draw_pie_f(self, pen,
+                           rect->x, rect->y,
+                           rect->width, rect->height,
+                           start_angle, sweep_angle);
+}
 
 void
 cern_graphics_draw_pie_f(CernGraphics *self, CernPen *pen,
                          gfloat x, gfloat y, gfloat width, gfloat height,
-                         gfloat start_angle, gfloat sweep_angle);
+                         gfloat start_angle, gfloat sweep_angle) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_pie_f(...): Invalid pen");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  status
+    = GdipDrawPie(self->handle, pen_ptr, x, y, width, height, start_angle, sweep_angle);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_pie_f(...): GdipDrawPie() failed: %d", status);
+  }
+}
 
 void
 cern_graphics_draw_pie_rect(CernGraphics *self, CernPen *pen,
                             CernRectangle *rect, gfloat start_angle,
-                            gfloat sweep_angle);
+                            gfloat sweep_angle) {
+  cern_graphics_draw_pie_i(self, pen,
+                           rect->x, rect->y,
+                           rect->width, rect->height,
+                           start_angle, sweep_angle);
+}
 void
 cern_graphics_draw_pie_i(CernGraphics *self, CernPen *pen,
                          gint32 x, gint32 y, gint32 width, gint32 height,
-                         gint32 start_angle, gint32 sweep_angle);
+                         gint32 start_angle, gint32 sweep_angle) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_pie_f(...): Invalid pen");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  status
+    = GdipDrawPieI(self->handle, pen_ptr, x, y, width, height, start_angle, sweep_angle);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_pie_f(...): GdipDrawPie() failed: %d", status);
+  }
+}
 
 void
 cern_graphics_draw_polygon(CernGraphics *self, CernPen *pen,
-                           CernPointF *points, gsize points_count);
+                           CernPointF *points, gsize points_count) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+  GpPointF *gp_points;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_polygon(...): Invalid pen");
+    return;
+  }
+
+  if (points == NULL || points_count == 0) {
+    g_warning("cern_graphics_draw_polygon(...): Invalid points or points_count");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  gp_points = g_new(GpPointF, points_count);
+
+  if (gp_points == NULL) {
+    g_warning("cern_graphics_draw_polygon(...): Failed to allocate memory for gp_points");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status = GdipDrawPolygon(self->handle, pen_ptr, gp_points, points_count);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_polygon(...): GdipDrawPolygon() failed: %d", status);
+  }
+
+  g_free(gp_points);
+}
 
 void
 cern_graphics_draw_polygon_i(CernGraphics *self, CernPen *pen,
-                             CernPoint *points, gsize points_count);
+                             CernPoint *points, gsize points_count) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+  GpPoint *gp_points;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_polygon_i(...): Invalid pen");
+    return;
+  }
+
+  if (points == NULL || points_count == 0) {
+    g_warning("cern_graphics_draw_polygon_i(...): Invalid points or points_count");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  gp_points = g_new(GpPoint, points_count);
+
+  if (gp_points == NULL) {
+    g_warning("cern_graphics_draw_polygon_i(...): Failed to allocate memory for gp_points");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status = GdipDrawPolygonI(self->handle, pen_ptr, gp_points, points_count);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_polygon_i(...): GdipDrawPolygonI() failed: %d", status);
+  }
+
+  g_free(gp_points);
+}
+
 
 void
 cern_graphics_draw_path(CernGraphics *self, CernPen *pen,
-                        CernGraphicsPath *path);
+                        CernGraphicsPath *path) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+  gpointer path_ptr;
+  CernNativeGdiObject *path_object;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_path(...): Invalid pen");
+    return;
+  }
+
+  if (path == NULL) {
+    g_warning("cern_graphics_draw_path(...): Invalid path");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  path_object = CERN_NATIVE_GDI_OBJECT(path);
+  path_ptr = cern_native_gdi_object_get_native_handle(path_object);
+
+  status = GdipDrawPath(self->handle, pen_ptr, path_ptr);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_path(...): GdipDrawPath() failed: %d", status);
+  }
+}
 
 void
 cern_graphics_draw_curve(CernGraphics *self, CernPen *pen,
-                         CernPointF *points, gsize points_count);
+                         CernPointF *points, gsize points_count) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+  GpPointF *gp_points;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_curve(...): Invalid pen");
+    return;
+  }
+
+  if (points == NULL || points_count == 0) {
+    g_warning("cern_graphics_draw_curve(...): Invalid points or points_count");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  gp_points = g_new(GpPointF, points_count);
+
+  if (gp_points == NULL) {
+    g_warning("cern_graphics_draw_curve(...): Failed to allocate memory for gp_points");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status = GdipDrawCurve(self->handle, pen_ptr, gp_points, points_count);
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_curve(...): GdipDrawCurve() failed: %d", status);
+  }
+
+  g_free(gp_points);
+}
+
+
 
 void
 cern_graphics_draw_curve_tension(CernGraphics *self, CernPen *pen,
                                  CernPointF *points, gsize points_count,
-                                 gfloat tension);
+                                 gfloat tension) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+  GpPointF *gp_points;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_curve_tension(...): Invalid pen");
+    return;
+  }
+
+  if (points == NULL || points_count == 0) {
+    g_warning("cern_graphics_draw_curve_tension(...): Invalid points or points_count");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  gp_points = g_new(GpPointF, points_count);
+
+  if (gp_points == NULL) {
+    g_warning("cern_graphics_draw_curve_tension(...): Failed to allocate memory for gp_points");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status = GdipDrawCurve2(self->handle, pen_ptr, gp_points, points_count, tension);
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_curve_tension(...): GdipDrawCurve2() failed: %d", status);
+  }
+
+  g_free(gp_points);
+}
+
 
 void
 cern_graphics_draw_curve_segments(CernGraphics *self, CernPen *pen,
                                   CernPointF *points, gsize offset,
-                                  gsize number_of_segments);
+                                  gsize number_of_segments) {
+  cern_graphics_draw_curve_segments_tension(self, pen, points, offset,
+                                            number_of_segments, 0.5f);
+}
 
 void
 cern_graphics_draw_curve_segments_tension(CernGraphics *self, CernPen *pen,
                                           CernPointF *points, gsize offset,
-                                          gsize number_of_segments, gfloat tension);
+                                          gsize number_of_segments,
+                                          gfloat tension) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+  GpPointF *gp_points;
+  gsize points_count;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_curve_segments_tension(...): Invalid pen");
+    return;
+  }
+
+  if (points == NULL || number_of_segments == 0) {
+    g_warning("cern_graphics_draw_curve_segments_tension(...): Invalid points or number_of_segments");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  points_count = offset + number_of_segments + 2;
+  gp_points = g_new(GpPointF, points_count);
+
+  if (gp_points == NULL) {
+    g_warning("cern_graphics_draw_curve_segments_tension(...): Failed to allocate memory for gp_points");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status = GdipDrawCurve3(self->handle, pen_ptr, gp_points, points_count, offset, number_of_segments, tension);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_curve_segments_tension(...): GdipDrawCurve3() failed: %d", status);
+  }
+
+  g_free(gp_points);
+}
+
 
 void
 cern_graphics_draw_curve_i(CernGraphics *self, CernPen *pen,
-                           CernPoint *points, gsize points_count);
+                           CernPoint *points, gsize points_count) {
+  cern_graphics_draw_curve_tension_i(self, pen, points, points_count, 0.5f);
+}
 
 void
 cern_graphics_draw_curve_tension_i(CernGraphics *self, CernPen *pen,
                                    CernPoint *points, gsize points_count,
-                                   gfloat tension);
+                                   gfloat tension) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+  GpPoint *gp_points;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_curve_tension_i(...): Invalid pen");
+    return;
+  }
+
+  if (points == NULL || points_count == 0) {
+    g_warning("cern_graphics_draw_curve_tension_i(...): Invalid points or points_count");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  gp_points = g_new(GpPoint, points_count);
+
+  if (gp_points == NULL) {
+    g_warning("cern_graphics_draw_curve_tension_i(...): Failed to allocate memory for gp_points");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status = GdipDrawCurve2I(self->handle, pen_ptr, gp_points, points_count, tension);
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_curve_tension_i(...): GdipDrawCurve2I() failed: %d", status);
+  }
+
+  g_free(gp_points);
+}
+
 
 void
 cern_graphics_draw_curve_segments_tension_i(CernGraphics *self, CernPen *pen,
                                             CernPoint *points, gsize offset,
-                                            gsize number_of_segments, gfloat tension);
+                                            gsize number_of_segments, gfloat tension) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+  GpPoint *gp_points;
+  gsize points_count;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_curve_segments_tension_i(...): Invalid pen");
+    return;
+  }
+
+  if (points == NULL || number_of_segments == 0) {
+    g_warning("cern_graphics_draw_curve_segments_tension_i(...): Invalid points or number_of_segments");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  points_count = offset + number_of_segments + 2;
+  gp_points = g_new(GpPoint, points_count);
+
+  if (gp_points == NULL) {
+    g_warning("cern_graphics_draw_curve_segments_tension_i(...): Failed to allocate memory for gp_points");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status
+    = GdipDrawCurve3I(self->handle, pen_ptr, gp_points, points_count, offset,
+                      number_of_segments, tension);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_curve_segments_tension_i(...): GdipDrawCurve3I() failed: %d", status);
+  }
+
+  g_free(gp_points);
+}
+
 
 void
 cern_graphics_draw_closed_curve(CernGraphics *self, CernPen *pen,
-                                CernPointF *points, gsize points_count);
+                                CernPointF *points, gsize points_count) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+  GpPointF *gp_points;
 
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_closed_curve(...): Invalid pen");
+    return;
+  }
+
+  if (points == NULL || points_count == 00) {
+    g_warning("cern_graphics_draw_closed_curve(...): Invalid points or points_count");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  gp_points = g_new(GpPointF, points_count);
+  if (gp_points == NULL) {
+    g_warning("cern_graphics_draw_closed_curve(...): Failed to allocate memory for gp_points");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status = GdipDrawClosedCurve(self->handle, pen_ptr, gp_points, points_count);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_closed_curve(...): GdipDrawClosedCurve() failed: %d", status);
+  }
+
+  g_free(gp_points);
+}
+
+/* FIXME: Why is there CernFillMode??? */
 void
 cern_graphics_draw_closed_curve_tension(CernGraphics *self, CernPen *pen,
                                         CernPointF *points, gsize points_count,
-                                        gfloat tension, CernFillMode fill_mode);
+                                        gfloat tension, CernFillMode fill_mode) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+  GpPointF *gp_points;
+  (void) fill_mode;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_closed_curve_tension(...): Invalid pen");
+    return;
+  }
+
+  if (points == NULL || points_count == 0) {
+    g_warning("cern_graphics_draw_closed_curve_tension(...): Invalid points or points_count");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  gp_points = g_new(GpPointF, points_count);
+  if (gp_points == NULL) {
+    g_warning("cern_graphics_draw_closed_curve_tension(...): Failed to allocate memory for gp_points");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status
+    = GdipDrawClosedCurve2(self->handle, pen_ptr, gp_points, points_count,
+                           tension);
+
+}
 
 void
 cern_graphics_draw_closed_curve_i(CernGraphics *self, CernPen *pen,
-                                  CernPoint *points, gsize points_count);
+                                  CernPoint *points, gsize points_count) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+  GpPoint *gp_points;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_closed_curve_i(...): Invalid pen");
+    return;
+  }
+
+  if (points == NULL || points_count == 0) {
+    g_warning("cern_graphics_draw_closed_curve_i(...): Invalid points or points_count");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  gp_points = g_new(GpPoint, points_count);
+  if (gp_points == NULL) {
+    g_warning("cern_graphics_draw_closed_curve_i(...): Failed to allocate memory for gp_points");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status = GdipDrawClosedCurveI(self->handle, pen_ptr, gp_points, points_count);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_closed_curve_i(...): GdipDrawClosedCurveI() failed: %d", status);
+  }
+
+  g_free(gp_points);
+}
+
 
 void
 cern_graphics_draw_closed_curve_tension_i(CernGraphics *self, CernPen *pen,
                                           CernPoint *points, gsize points_count,
-                                          gfloat tension, CernFillMode fill_mode);
+                                          gfloat tension, CernFillMode fill_mode) {
+  GpStatus status;
+  gpointer pen_ptr;
+  CernNativeGdiObject *pen_object;
+  GpPoint *gp_points;
+  (void) fill_mode;
+
+  if (pen == NULL) {
+    g_warning("cern_graphics_draw_closed_curve_tension_i(...): Invalid pen");
+    return;
+  }
+
+  if (points == NULL || points_count == 0) {
+    g_warning("cern_graphics_draw_closed_curve_tension_i(...): Invalid points or points_count");
+    return;
+  }
+
+  pen_object = CERN_NATIVE_GDI_OBJECT(pen);
+  pen_ptr = cern_native_gdi_object_get_native_handle(pen_object);
+
+  gp_points = g_new(GpPoint, points_count);
+  if (gp_points == NULL) {
+    g_warning("cern_graphics_draw_closed_curve_tension_i(...): Failed to allocate memory for gp_points");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status = GdipDrawClosedCurve2I(self->handle, pen_ptr, gp_points, points_count, tension);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_closed_curve_tension_i(...): GdipDrawClosedCurve2I() failed: %d", status);
+  }
+
+  g_free(gp_points);
+}
+
 
 void
-cern_graphics_clear(CernGraphics *self, CernColor *color);
+cern_graphics_clear(CernGraphics *self, CernColor *color) {
+  GpStatus status;
+
+  if (color == NULL) {
+    g_warning("cern_graphics_clear(...): Invalid color");
+    return;
+  }
+
+  status = GdipGraphicsClear(self->handle, cern_color_to_argb(color));
+
+  if (status != Ok) {
+    g_warning("cern_graphics_clear(...): GdipGraphicsClear() failed: %d", status);
+  }
+}
 
 void
 cern_graphics_fill_rectangle(CernGraphics *self, CernBrush *brush,
-                             CernRectangleF *rect);
+                             CernRectangleF *rect) {
+  cern_graphics_fill_rectangle_f(self, brush,
+                                 rect->x, rect->y,
+                                 rect->width, rect->height);
+}
 
 void
 cern_graphics_fill_rectangle_f(CernGraphics *self, CernBrush *brush,
-                               gfloat x, gfloat y, gfloat width, gfloat height);
+                               gfloat x, gfloat y, gfloat width, gfloat height) {
+  GpStatus status;
+  gpointer brush_ptr;
+  CernNativeGdiObject *brush_object;
+
+  if (brush == NULL) {
+    g_warning("cern_graphics_fill_rectangle(...): Invalid brush");
+    return;
+  }
+
+  brush_object = CERN_NATIVE_GDI_OBJECT(brush);
+  brush_ptr = cern_native_gdi_object_get_native_handle(brush_object);
+
+  status = GdipFillRectangle(self->handle, brush_ptr, x, y, width, height);
+
+  if (status!= Ok) {
+    g_warning("cern_graphics_fill_rectangle_f(...): GdipFillRectangle() failed: %d", status);
+  }
+}
 
 void
 cern_graphics_fill_rectangle_i(CernGraphics *self, CernBrush *brush,
-                               CernRectangle *rect);
+                               CernRectangle *rect) {
+  cern_graphics_fill_rectangle_i_xy(self, brush,
+                                   rect->x, rect->y,
+                                   rect->width, rect->height);
+}
 
 void
 cern_graphics_fill_rectangle_i_xy(CernGraphics *self, CernBrush *brush,
-                                  gint x, gint y, gint width, gint height);
+                                  gint32 x, gint32 y, gint32 width, gint32 height) {
+  GpStatus status;
+  gpointer brush_ptr;
+  CernNativeGdiObject *brush_object;
+
+  if (brush == NULL) {
+    g_warning("cern_graphics_fill_rectangle_i_xy(...): Invalid brush");
+    return;
+  }
+
+  brush_object = CERN_NATIVE_GDI_OBJECT(brush);
+  brush_ptr = cern_native_gdi_object_get_native_handle(brush_object);
+
+  status = GdipFillRectangleI(self->handle, brush_ptr, x, y, width, height);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_fill_rectangle_i_xy(...): GdipFillRectangleI() failed: %d", status);
+  }
+}
+
 
 void
 cern_graphics_fill_rectangles(CernGraphics *self, CernBrush *brush,
-                              CernRectangleF *rects, gsize rects_count);
+                              CernRectangleF *rects, gsize rects_count) {
+  GpStatus status;
+  gpointer brush_ptr;
+  CernNativeGdiObject *brush_object;
+  GpRectF *gp_rects;
+
+  if (brush == NULL) {
+    g_warning("cern_graphics_fill_rectangles(...): Invalid brush");
+    return;
+  }
+
+  if (rects == NULL) {
+    g_warning("cern_graphics_fill_rectangles(...): Invalid rects");
+    return;
+  }
+
+  brush_object = CERN_NATIVE_GDI_OBJECT(brush);
+  brush_ptr = cern_native_gdi_object_get_native_handle(brush_object);
+
+  gp_rects = g_new(GpRectF, rects_count);
+
+  if (gp_rects == NULL) {
+    g_warning("cern_graphics_fill_rectangles(...): Failed to allocate memory for gp_rects");
+    return;
+  }
+
+  for (gsize i = 0; i < rects_count; i++) {
+    gp_rects[i].X = rects[i].x;
+    gp_rects[i].Y = rects[i].y;
+    gp_rects[i].Width = rects[i].width;
+    gp_rects[i].Height = rects[i].height;
+  }
+
+  status = GdipFillRectangles(self->handle, brush_ptr, gp_rects, rects_count);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_fill_rectangles(...): GdipFillRectangles() failed: %d", status);
+  }
+
+  g_free(gp_rects);
+}
 
 void
 cern_graphics_fill_rectangles_i(CernGraphics *self, CernBrush *brush,
-                                CernRectangle *rects, gsize rects_count);
+                                CernRectangle *rects, gsize rects_count) {
+  GpStatus status;
+  gpointer brush_ptr;
+  CernNativeGdiObject *brush_object;
+  GpRect *gp_rects;
+
+  if (brush == NULL) {
+    g_warning("cern_graphics_fill_rectangles_i(...): Invalid brush");
+    return;
+  }
+
+  if (rects == NULL) {
+    g_warning("cern_graphics_fill_rectangles_i(...): Invalid rects");
+    return;
+  }
+
+  brush_object = CERN_NATIVE_GDI_OBJECT(brush);
+  brush_ptr = cern_native_gdi_object_get_native_handle(brush_object);
+
+  gp_rects = g_new(GpRect, rects_count);
+
+  if (gp_rects == NULL) {
+    g_warning("cern_graphics_fill_rectangles_i(...): Failed to allocate memory for gp_rects");
+    return;
+  }
+
+  for (gsize i = 0; i < rects_count; i++) {
+    gp_rects[i].X = rects[i].x;
+    gp_rects[i].Y = rects[i].y;
+    gp_rects[i].Width = rects[i].width;
+    gp_rects[i].Height = rects[i].height;
+  }
+
+  status = GdipFillRectanglesI(self->handle, brush_ptr, gp_rects, rects_count);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_fill_rectangles_i(...): GdipFillRectanglesI() failed: %d", status);
+  }
+
+  g_free(gp_rects);
+}
+
 
 void
 cern_graphics_fill_polygon(CernGraphics *self, CernBrush *brush,
-                           CernPointF *points, gsize points_count);
+                           CernPointF *points, gsize points_count) {
+  cern_graphics_fill_polygon_mode(self, brush, points, points_count,
+                                  CernFillMode_Alternate);
+}
 
 void
 cern_graphics_fill_polygon_i(CernGraphics *self, CernBrush *brush,
-                             CernPoint *points, gsize points_count);
-
-void
-cern_graphics_fill_polygon_f(CernGraphics *self, CernBrush *brush,
-                             CernPointF *points, gsize points_count);
+                             CernPoint *points, gsize points_count) {
+  cern_graphics_fill_polygon_mode_i(self, brush, points, points_count,
+                                    CernFillMode_Alternate);
+}
 
 void
 cern_graphics_fill_polygon_mode(CernGraphics *self, CernBrush *brush,
                                 CernPointF *points, gsize points_count,
-                                CernFillMode fill_mode);
+                                CernFillMode fill_mode) {
+  GpStatus status;
+  gpointer brush_ptr;
+  CernNativeGdiObject *brush_object;
+  GpPointF *gp_points;
+
+  if (brush == NULL) {
+    g_warning("cern_graphics_fill_polygon_mode(...): Invalid brush");
+    return;
+  }
+
+  if (points == NULL) {
+    g_warning("cern_graphics_fill_polygon_mode(...): Invalid points");
+    return;
+  }
+
+  brush_object = CERN_NATIVE_GDI_OBJECT(brush);
+  brush_ptr = cern_native_gdi_object_get_native_handle(brush_object);
+
+  gp_points = g_new(GpPointF, points_count);
+
+  if (gp_points == NULL) {
+    g_warning("cern_graphics_fill_polygon_mode(...): Failed to allocate memory for gp_points");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status
+    = GdipFillPolygon(self->handle, brush_ptr, gp_points, points_count,
+                      (GpFillMode) fill_mode);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_fill_polygon_mode(...): GdipFillPolygon() failed: %d", status);
+  }
+
+  g_free(gp_points);
+}
 
 void
-cern_graphics_fill_polygon_i_mode(CernGraphics *self, CernBrush *brush,
+cern_graphics_fill_polygon_mode_i(CernGraphics *self, CernBrush *brush,
                                   CernPoint *points, gsize points_count,
-                                  CernFillMode fill_mode);
+                                  CernFillMode fill_mode) {
+  GpStatus status;
+  gpointer brush_ptr;
+  CernNativeGdiObject *brush_object;
+  GpPoint *gp_points;
+
+  if (brush == NULL) {
+    g_warning("cern_graphics_fill_polygon_mode_i(...): Invalid brush");
+    return;
+  }
+
+  if (points == NULL) {
+    g_warning("cern_graphics_fill_polygon_mode_i(...): Invalid points");
+    return;
+  }
+
+  brush_object = CERN_NATIVE_GDI_OBJECT(brush);
+  brush_ptr = cern_native_gdi_object_get_native_handle(brush_object);
+
+  gp_points = g_new(GpPoint, points_count);
+
+  if (gp_points == NULL) {
+    g_warning("cern_graphics_fill_polygon_mode_i(...): Failed to allocate memory for gp_points");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status
+    = GdipFillPolygonI(self->handle, brush_ptr, gp_points, points_count,
+                       (GpFillMode) fill_mode);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_fill_polygon_mode_i(...): GdipFillPolygonI() failed: %d", status);
+  }
+
+  g_free(gp_points);
+}
 
 void
-cern_graphics_fill_polygon_mode_array(CernGraphics *self, CernBrush *brush,
-                                      CernPoint *points, gsize points_count,
-                                      CernFillMode fill_mode);
+cern_graphics_fill_ellipse_rect(CernGraphics *self, CernBrush *brush,
+                                CernRectangleF *rect) {
+  cern_graphics_fill_ellipse(self, brush,
+                             rect->x, rect->y,
+                             rect->width, rect->height);
+}
 
 void
 cern_graphics_fill_ellipse(CernGraphics *self, CernBrush *brush,
-                           CernRectangleF *rect);
+                           gfloat x, gfloat y, gfloat width, gfloat height) {
+  GpStatus status;
+  gpointer brush_ptr;
+  CernNativeGdiObject *brush_object;
 
-void
-cern_graphics_fill_ellipse_f(CernGraphics *self, CernBrush *brush,
-                             gfloat x, gfloat y, gfloat width, gfloat height);
+  if (brush == NULL) {
+    g_warning("cern_graphics_fill_ellipse(...): Invalid brush");
+    return;
+  }
+
+  brush_object = CERN_NATIVE_GDI_OBJECT(brush);
+  brush_ptr = cern_native_gdi_object_get_native_handle(brush_object);
+
+  status = GdipFillEllipse(self->handle, brush_ptr, x, y, width, height);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_fill_ellipse(...): GdipFillEllipse() failed: %d", status);
+  }
+}
 
 void
 cern_graphics_fill_ellipse_i_rect(CernGraphics *self, CernBrush *brush,
-                                  CernRectangle *rect);
+                                  CernRectangle *rect) {
+  cern_graphics_fill_ellipse_i(self, brush,
+                               rect->x, rect->y,
+                               rect->width, rect->height);
+}
 
 void
 cern_graphics_fill_ellipse_i(CernGraphics *self, CernBrush *brush,
-                             gint32 x, gint32 y, gint32 width, gint32 height);
+                             gint32 x, gint32 y, gint32 width, gint32 height) {
+  GpStatus status;
+  gpointer brush_ptr;
+  CernNativeGdiObject *brush_object;
+
+  if (brush == NULL) {
+    g_warning("cern_graphics_fill_ellipse_i(...): Invalid brush");
+    return;
+  }
+
+  brush_object = CERN_NATIVE_GDI_OBJECT(brush);
+  brush_ptr = cern_native_gdi_object_get_native_handle(brush_object);
+
+  status = GdipFillEllipseI(self->handle, brush_ptr, x, y, width, height);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_fill_ellipse_i(...): GdipFillEllipseI() failed: %d", status);
+  }
+}
+
 
 void
 cern_graphics_fill_pie(CernGraphics *self, CernBrush *brush,
-                       CernRectangleF *rect, gfloat startAngle, gfloat sweepAngle);
+                       CernRectangleF *rect, gfloat startAngle,
+                       gfloat sweepAngle) {
+  cern_graphics_fill_pie_f(self, brush,
+                           rect->x, rect->y,
+                           rect->width, rect->height,
+                           startAngle, sweepAngle);
+}
 
 void
 cern_graphics_fill_pie_f(CernGraphics *self, CernBrush *brush,
                          gfloat x, gfloat y, gfloat width, gfloat height,
-                         gfloat startAngle, gfloat sweepAngle);
+                         gfloat startAngle, gfloat sweepAngle) {
+  GpStatus status;
+  gpointer brush_ptr;
+  CernNativeGdiObject *brush_object;
+
+  if (brush == NULL) {
+    g_warning("cern_graphics_fill_pie_f(...): Invalid brush");
+    return;
+  }
+
+  brush_object = CERN_NATIVE_GDI_OBJECT(brush);
+  brush_ptr = cern_native_gdi_object_get_native_handle(brush_object);
+
+  status
+    = GdipFillPie(self->handle, brush_ptr, x, y, width, height,
+                  startAngle, sweepAngle);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_fill_pie_f(...): GdipFillPie() failed: %d", status);
+  }
+}
 
 
 void
 cern_graphics_fill_pie_i(CernGraphics *self, CernBrush *brush,
                          gint32 x, gint32 y, gint32 width, gint32 height,
-                         gint32 startAngle, gint32 sweepAngle);
+                         gint32 startAngle, gint32 sweepAngle) {
+  GpStatus status;
+  gpointer brush_ptr;
+  CernNativeGdiObject *brush_object;
+
+  if (brush == NULL) {
+    g_warning("cern_graphics_fill_pie_i(...): Invalid brush");
+    return;
+  }
+
+  brush_object = CERN_NATIVE_GDI_OBJECT(brush);
+  brush_ptr = cern_native_gdi_object_get_native_handle(brush_object);
+
+  status
+    = GdipFillPieI(self->handle, brush_ptr, x, y, width, height,
+                   startAngle, sweepAngle);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_fill_pie_i(...): GdipFillPieI() failed: %d", status);
+  }
+}
+
 
 void
 cern_graphics_fill_pie_i_rect(CernGraphics *self, CernBrush *brush,
                               CernRectangle *rect, gint32 startAngle,
-                              gint32 sweepAngle);
+                              gint32 sweepAngle) {
+  cern_graphics_fill_pie_i(self, brush,
+                           rect->x, rect->y,
+                           rect->width, rect->height,
+                           startAngle, sweepAngle);
+}
 
 void
 cern_graphics_fill_path(CernGraphics *self, CernBrush *brush,
-                        CernGraphicsPath *path);
+                        CernGraphicsPath *path) {
+  GpStatus status;
+
+  gpointer brush_ptr;
+  gpointer path_ptr;
+  CernNativeGdiObject *brush_object;
+  CernNativeGdiObject *path_object;
+
+  if (brush == NULL || path == NULL) {
+    g_warning("cern_graphics_fill_path(...): Invalid brush or path");
+    return;
+  }
+
+  brush_object = CERN_NATIVE_GDI_OBJECT(brush);
+  brush_ptr = cern_native_gdi_object_get_native_handle(brush_object);
+
+  path_object = CERN_NATIVE_GDI_OBJECT(path);
+  path_ptr = cern_native_gdi_object_get_native_handle(path_object);
+
+  status = GdipFillPath(self->handle, brush_ptr, path_ptr);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_fill_path(...): GdipFillPath() failed: %d", status);
+  }
+}
 
 void
 cern_graphics_fill_closed_curve(CernGraphics *self, CernBrush *brush,
-                                CernPointF *points, gsize points_count);
+                                CernPointF *points, gsize points_count) {
+  GpStatus status;
+  gpointer brush_ptr;
+  CernNativeGdiObject *brush_object;
+
+  GpPointF *gp_points;
+
+  if (brush == NULL || points == NULL) {
+    g_warning("cern_graphics_fill_closed_curve(...): Invalid brush or points");
+    return;
+  }
+
+  brush_object = CERN_NATIVE_GDI_OBJECT(brush);
+  brush_ptr = cern_native_gdi_object_get_native_handle(brush_object);
+
+  gp_points = g_new(GpPointF, points_count);
+
+  if (gp_points == NULL) {
+    g_warning("cern_graphics_fill_closed_curve(...): Out of memory");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status = GdipFillClosedCurve(self->handle, brush_ptr, gp_points, points_count);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_fill_closed_curve(...): GdipFillClosedCurve() failed: %d", status);
+  }
+}
 
 void
 cern_graphics_fill_closed_curve_mode(CernGraphics *self, CernBrush *brush,
                                      CernPointF *points, gsize points_count,
-                                     CernFillMode fill_mode);
+                                     CernFillMode fill_mode) {
+  cern_graphics_fill_closed_curve_tension(self, brush, points, points_count,
+                                          fill_mode, 0.5f);
+}
 
 
 void
 cern_graphics_fill_closed_curve_tension(CernGraphics *self, CernBrush *brush,
                                         CernPointF *points, gsize points_count,
-                                        CernFillMode fill_mode, gfloat tension);
+                                        CernFillMode fill_mode, gfloat tension) {
+  GpStatus status;
+  gpointer brush_ptr;
+  GpPointF *gp_points;
+  CernNativeGdiObject *brush_object;
+
+  if (brush == NULL || points == NULL) {
+    g_warning("cern_graphics_fill_closed_curve_tension(...): Invalid brush or points");
+    return;
+  }
+
+  brush_object = CERN_NATIVE_GDI_OBJECT(brush);
+  brush_ptr = cern_native_gdi_object_get_native_handle(brush_object);
+
+  gp_points = g_new(GpPointF, points_count);
+
+  if (gp_points == NULL) {
+    g_warning("cern_graphics_fill_closed_curve_tension(...): Out of memory");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status = GdipFillClosedCurve2(self->handle, brush_ptr, gp_points, points_count,
+                                tension, (GpFillMode) fill_mode);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_fill_closed_curve_tension(...): GdipFillClosedCurve2() failed: %d", status);
+  }
+
+  g_free(gp_points);
+}
 
 void
 cern_graphics_fill_closed_curve_i(CernGraphics *self, CernBrush *brush,
-                                  CernPoint *points, gsize points_count);
+                                  CernPoint *points, gsize points_count) {
+  GpStatus status;
+  gpointer brush_ptr;
+  CernNativeGdiObject *brush_object;
+
+  GpPoint *gp_points;
+
+  if (brush == NULL || points == NULL) {
+    g_warning("cern_graphics_fill_closed_curve_i(...): Invalid brush or points");
+    return;
+  }
+
+  brush_object = CERN_NATIVE_GDI_OBJECT(brush);
+  brush_ptr = cern_native_gdi_object_get_native_handle(brush_object);
+
+  gp_points = g_new(GpPoint, points_count);
+
+  if (gp_points == NULL) {
+    g_warning("cern_graphics_fill_closed_curve_i(...): Out of memory");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status = GdipFillClosedCurveI(self->handle, brush_ptr, gp_points, points_count);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_fill_closed_curve_i(...): GdipFillClosedCurveI() failed: %d", status);
+  }
+}
 
 void
 cern_graphics_fill_closed_curve_i_mode(CernGraphics *self, CernBrush *brush,
                                        CernPoint *points, gsize points_count,
-                                       CernFillMode fill_mode);
+                                       CernFillMode fill_mode) {
+  cern_graphics_fill_closed_curve_i_tension(self, brush, points, points_count,
+                                            fill_mode, 0.5f);
+}
 
 void
 cern_graphics_fill_closed_curve_i_tension(CernGraphics *self, CernBrush *brush,
                                           CernPoint *points, gsize points_count,
-                                          CernFillMode fill_mode, gfloat tension);
+                                          CernFillMode fill_mode, gfloat tension) {
+  GpStatus status;
+  gpointer brush_ptr;
+  GpPoint *gp_points;
+  CernNativeGdiObject *brush_object;
+
+  if (brush == NULL || points == NULL) {
+    g_warning("cern_graphics_fill_closed_curve_i_tension(...): Invalid brush or points");
+    return;
+  }
+
+  brush_object = CERN_NATIVE_GDI_OBJECT(brush);
+  brush_ptr = cern_native_gdi_object_get_native_handle(brush_object);
+
+  gp_points = g_new(GpPoint, points_count);
+
+  if (gp_points == NULL) {
+    g_warning("cern_graphics_fill_closed_curve_i_tension(...): Out of memory");
+    return;
+  }
+
+  for (gsize i = 0; i < points_count; i++) {
+    gp_points[i].X = points[i].x;
+    gp_points[i].Y = points[i].y;
+  }
+
+  status = GdipFillClosedCurve2I(self->handle, brush_ptr, gp_points, points_count,
+                                 tension, (GpFillMode) fill_mode);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_fill_closed_curve_i_tension(...): GdipFillClosedCurve2() failed: %d", status);
+  }
+
+  g_free(gp_points);
+}
 
 void
 cern_graphics_fill_region(CernGraphics *self, CernBrush *brush,
-                          CernRegion *region);
+                          CernRegion *region) {
+  GpStatus status;
+  gpointer brush_ptr, region_ptr;
+  CernNativeGdiObject *brush_object, *region_object;
+
+  if (brush == NULL || region == NULL) {
+    g_warning("cern_graphics_fill_region(...): Invalid brush or region");
+    return;
+  }
+
+  brush_object = CERN_NATIVE_GDI_OBJECT(brush);
+  brush_ptr = cern_native_gdi_object_get_native_handle(brush_object);
+
+  region_object = CERN_NATIVE_GDI_OBJECT(region);
+  region_ptr = cern_native_gdi_object_get_native_handle(region_object);
+
+  status = GdipFillRegion(self->handle, brush_ptr, region_ptr);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_fill_region(...): GdipFillRegion() failed: %d", status);
+  }
+}
 
 void
 cern_graphics_draw_string(CernGraphics *self, const gchar *text,
                           CernFont *font, CernBrush *brush,
-                          gfloat x, gfloat y);
+                          gfloat x, gfloat y) {
+  CernRectangleF layout_rectangle = { x, y, 0, 0 };
+  cern_graphics_draw_string_rect_format(self, text, font, brush,
+                                        &layout_rectangle, NULL);
+}
 
 void
 cern_graphics_draw_string_point(CernGraphics *self, const gchar *text,
                                 CernFont *font, CernBrush *brush,
-                                CernPointF *point);
+                                CernPointF *point) {
+  CernRectangleF layout_rectangle = { point->x, point->y, 0, 0 };
+  cern_graphics_draw_string_rect_format(self, text, font, brush,
+                                        &layout_rectangle, NULL);
+}
 
 void
 cern_graphics_draw_string_format(CernGraphics *self, const gchar *text,
                                  CernFont *font, CernBrush *brush,
                                  gfloat x, gfloat y,
-                                 CernStringFormat *format);
+                                 CernStringFormat *format) {
+  CernRectangleF layout_rectangle = { x, y, 0, 0 };
+  cern_graphics_draw_string_rect_format(self, text, font, brush,
+                                        &layout_rectangle, format);
+}
 
 void
 cern_graphics_draw_string_point_format(CernGraphics *self, const gchar *text,
                                        CernFont *font, CernBrush *brush,
                                        CernPointF *point,
-                                       CernStringFormat *format);
+                                       CernStringFormat *format) {
+  CernRectangleF layout_rectangle = { point->x, point->y, 0, 0 };
+  cern_graphics_draw_string_rect_format(self, text, font, brush,
+                                        &layout_rectangle, format);
+}
 
 void
 cern_graphics_draw_string_rect(CernGraphics *self, const gchar *text,
                                CernFont *font, CernBrush *brush,
-                               CernRectangleF *layout_rectangle);
+                               CernRectangleF *layout_rectangle) {
+  cern_graphics_draw_string_rect_format(self, text, font, brush,
+                                        layout_rectangle, NULL);
+}
 
 void
 cern_graphics_draw_string_rect_format(CernGraphics *self, const gchar *text,
                                       CernFont *font, CernBrush *brush,
                                       CernRectangleF *layout_rectangle,
-                                      CernStringFormat *format);
-CernSizeF *
+                                      CernStringFormat *format) {
+  GpStatus status;
+  GpRectF gp_rect;
+  gunichar2 *utf16_text;
+  gpointer font_ptr, brush_ptr, format_ptr;
+  CernNativeGdiObject *font_object, *brush_object, *format_object;
+
+  if (text == NULL || font == NULL || brush == NULL || layout_rectangle == NULL) {
+    g_warning("cern_graphics_draw_string_rect_format(...): Invalid text, font, brush, or layout_rectangle");
+    return;
+  }
+
+  gp_rect.X = layout_rectangle->x;
+  gp_rect.Y = layout_rectangle->y;
+  gp_rect.Width = layout_rectangle->width;
+  gp_rect.Height = layout_rectangle->height;
+
+  font_object = CERN_NATIVE_GDI_OBJECT(font);
+  font_ptr = cern_native_gdi_object_get_native_handle(font_object);
+
+  brush_object = CERN_NATIVE_GDI_OBJECT(brush);
+  brush_ptr = cern_native_gdi_object_get_native_handle(brush_object);
+
+  format_object = CERN_NATIVE_GDI_OBJECT(format);
+  format_ptr = cern_native_gdi_object_get_native_handle(format_object);
+
+  utf16_text = g_utf8_to_utf16(text, -1, NULL, NULL, NULL);
+
+  status
+    = GdipDrawString(self->handle, utf16_text, -1, font_ptr, &gp_rect, format_ptr,
+                     brush_ptr);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_draw_string_rect_format(...): GdipDrawString() failed: %d", status);
+  }
+
+  g_free(utf16_text);
+}
+
+CernSizeF
 cern_graphics_measure_string(CernGraphics *self, const gchar *text,
                              CernFont *font, CernSizeF *layout_area,
                              CernStringFormat *format,
-                             gint32 *characters_fitted, gint32 *lines_filled);
+                             gint32 *characters_fitted, gint32 *lines_filled) {
+  GpStatus status;
+  GpRectF layout_rect;
+  GpRectF bounding_box;
+  gunichar2 *utf16_text;
 
-CernSizeF *
+  gpointer font_ptr, format_ptr;
+  CernNativeGdiObject *font_object, *format_object;
+  glong length = g_utf8_strlen(text, -1);
+
+  if (text == NULL || font == NULL || layout_area == NULL) {
+    g_warning("cern_graphics_measure_string(...): Invalid text, font, or layout_area");
+    return (CernSizeF) { 0, 0 };
+  }
+
+  font_object = CERN_NATIVE_GDI_OBJECT(font);
+  font_ptr = cern_native_gdi_object_get_native_handle(font_object);
+
+  format_object = CERN_NATIVE_GDI_OBJECT(format);
+  format_ptr = cern_native_gdi_object_get_native_handle(format_object);
+
+  utf16_text = g_utf8_to_utf16(text, -1, NULL, NULL, NULL);
+
+  layout_rect.X = layout_rect.Y = 0;
+
+  layout_rect.Width = layout_area->width;
+  layout_rect.Height = layout_area->height;
+
+
+
+  status
+    = GdipMeasureString(self->handle, utf16_text, length, font_ptr, &layout_rect,
+                        format_ptr, &bounding_box, characters_fitted,
+                        lines_filled);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_measure_string(...): GdipMeasureString() failed: %d", status);
+    g_free(utf16_text);
+    return (CernSizeF) { 0, 0 };
+  }
+
+  g_free(utf16_text);
+
+  return (CernSizeF) {
+    .width = bounding_box.Width,
+    .height = bounding_box.Height
+  };
+}
+
+CernSizeF
 cern_graphics_measure_string_point_format(CernGraphics *self, const gchar *text,
                                           CernFont *font, CernPointF *origin,
-                                          CernStringFormat *format);
+                                          CernStringFormat *format) {
+  GpStatus status;
+  GpRectF layout_rect;
+  GpRectF bounding_box;
+  CernRectangleF res_bounding_box;
+  gunichar2 *utf16_text;
+  gint32 characters_fitted, lines_filled;
 
-CernSizeF *
+  gpointer font_ptr, format_ptr;
+  CernNativeGdiObject *font_object, *format_object;
+  glong length = g_utf8_strlen(text, -1);
+
+  if (text == NULL || font == NULL || origin == NULL || format == NULL) {
+    g_warning("cern_graphics_measure_string_point_format(...): Invalid text, font, origin, or format");
+    return (CernSizeF) { 0, 0 };
+  }
+
+  font_object = CERN_NATIVE_GDI_OBJECT(font);
+  font_ptr = cern_native_gdi_object_get_native_handle(font_object);
+
+  format_object = CERN_NATIVE_GDI_OBJECT(format);
+  format_ptr = cern_native_gdi_object_get_native_handle(format_object);
+
+  utf16_text = g_utf8_to_utf16(text, -1, NULL, NULL, NULL);
+
+  layout_rect.X = origin->x;
+  layout_rect.Y = origin->y;
+
+  layout_rect.Width = layout_rect.Height = 0;
+
+  status
+    = GdipMeasureString(self->handle, utf16_text, length, font_ptr, &layout_rect,
+                        format_ptr, &bounding_box, &characters_fitted,
+                        &lines_filled);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_measure_string_point_format(...): GdipMeasureString() failed: %d", status);
+    g_free(utf16_text);
+    return (CernSizeF) { 0, 0 };
+  }
+
+  g_free(utf16_text);
+
+  res_bounding_box.x = bounding_box.X;
+  res_bounding_box.y = bounding_box.Y;
+  res_bounding_box.width = bounding_box.Width;
+  res_bounding_box.height = bounding_box.Height;
+
+  return cern_rectangle_f_get_size(&res_bounding_box);
+}
+
+CernSizeF
 cern_graphics_measure_string_layout(CernGraphics *self, const gchar *text,
                                    CernFont *font, CernSizeF *layout_area);
 
-CernSizeF *
+CernSizeF
 cern_graphics_measure_string_format(CernGraphics *self, const gchar *text,
                                     CernFont *font, CernSizeF *layout_area,
                                     CernStringFormat *format);
-CernSizeF *
+CernSizeF
 cern_graphics_measure_string_basic(CernGraphics *self, const gchar *text,
                                    CernFont *font);
 
-CernSizeF *
+CernSizeF
 cern_graphics_measure_string_width(CernGraphics *self, const gchar *text,
                                    CernFont *font, gint32 width);
 
-CernSizeF *
+CernSizeF
 cern_graphics_measure_string_width_format(CernGraphics *self, const gchar *text,
                                           CernFont *font, gint32 width,
                                           CernStringFormat *format);

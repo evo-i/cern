@@ -3,9 +3,10 @@
 
 #include <glib-object.h>
 
-G_BEGIN_DECLS
+#include "point_f.h"
+#include "size_f.h"
 
-typedef struct _CernPointF CernPointF;
+G_BEGIN_DECLS
 
 typedef struct _CernRectangleF {
   gfloat x;
@@ -73,6 +74,9 @@ cern_rectangle_f_contains_coords(CernRectangleF *self, gfloat x, gfloat y);
 
 CernPointF
 cern_rectangle_f_get_location(CernRectangleF *self);
+
+CernSizeF
+cern_rectangle_f_get_size(CernRectangleF *self);
 
 void
 cern_rectangle_f_set_location(CernRectangleF *self, CernPointF *location);

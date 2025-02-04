@@ -69,6 +69,12 @@ target_link_libraries (cern_drawing
     Threads::Threads
     PkgConfig::GObject)
 
+set_target_properties (cern_drawing
+  PROPERTIES
+    C_STANDARD 17
+    C_STANDARD_REQUIRED ON
+    C_EXTENSIONS OFF)
+
 add_library (cern_ui
   SHARED
     src/ui/win32/window.c

@@ -499,7 +499,7 @@ cern_pen_get_color(CernPen *self) {
     status = GdipGetPenColor(self->pen, &argb);
     if (status != Ok) {
       g_critical("cern_pen_get_color(): GdipGetPenColor() failed");
-      return cern_color_empty();
+      return (CernColor *) cern_color_empty();
     }
 
     self->color = cern_color_from_argb(argb);
