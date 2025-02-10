@@ -106,7 +106,10 @@ cern_rectangle_get_location(CernRectangle *self) {
 
 gboolean
 cern_rectangle_is_empty(CernRectangle *self) {
-  return self->width == 0 || self->height == 0;
+  return
+    self == NULL
+      || (self->width == 0
+          || self->height == 0);
 }
 
 /* offset */

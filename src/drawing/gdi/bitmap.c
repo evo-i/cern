@@ -8,6 +8,8 @@
 #include <Windows.h>
 #include <gdiplus.h>
 
+#include <shlwapi.h>
+
 extern
 gpointer
 cern_bitmap_data_get_native(CernBitmapData *self);
@@ -55,6 +57,33 @@ cern_bitmap_set_native(CernBitmap *self, gpointer ptr) {
 }
 
 CernBitmap *
+cern_bitmap_new(guint32 width, guint32 height) {
+  return
+    cern_bitmap_new_with_format(width, height, CernPixelFormat_Format32bppArgb);
+}
+
+CernBitmap *
+cern_bitmap_new_with_format(guint32 width, guint32 height, CernPixelFormat pixel_format) {
+  GpStatus status;
+  gpointer bitmap;
+  CernBitmap *self;
+
+  self = NULL;
+  status
+    = GdipCreateBitmapFromScan0(width, height, 0, (PixelFormat) pixel_format, NULL, &bitmap);
+
+  if (status != Ok) {
+    g_critical("cern_bitmap_new(...): GdipCreateBitmapFromScan0() Failed");
+    return self;
+  }
+
+  self = g_object_new(CERN_TYPE_BITMAP, NULL);
+  cern_bitmap_set_native(self, bitmap);
+
+  return self;
+}
+
+CernBitmap *
 cern_bitmap_new_from_file(const char *filename) {
   CernBitmap *self;
   GpStatus status;
@@ -76,6 +105,98 @@ cern_bitmap_new_from_file(const char *filename) {
 
   cern_bitmap_set_native(self, bitmap);
 
+  return self;
+}
+
+CernBitmap *
+cern_bitmap_new_from_stream(GInputStream *stream) {
+  GpStatus status;
+  CernBitmap *self;
+  GError *error;
+  gpointer bitmap;
+  gpointer temp_memory;
+
+  IStream *mem_stream;
+  goffset mem_stream_size;
+  GSeekable *mem_stream_seekable;
+  GMemoryInputStream *mem_input_stream;
+
+  error = NULL;
+
+  mem_stream_seekable = G_SEEKABLE(stream);
+  mem_input_stream = G_MEMORY_INPUT_STREAM(stream);
+
+  if (!g_seekable_seek(mem_stream_seekable, 0, G_SEEK_END, NULL, &error)) {
+    g_critical("cern_bitmap_new_from_stream(...): Failed to seek to the end of the stream: %s", error->message);
+    g_error_free(error);
+    return NULL;
+  }
+
+  mem_stream_size = g_seekable_tell(mem_stream_seekable);
+
+  g_seekable_seek(mem_stream_seekable, 0, G_SEEK_SET, NULL, &error);
+
+  temp_memory = g_new(gchar, mem_stream_size);
+
+  if (!temp_memory) {
+    g_critical("cern_bitmap_new_from_stream(...): Failed to allocate memory for temporary buffer");
+    if (error) {
+      g_error_free(error);
+    }
+    return NULL;
+  }
+
+  g_input_stream_read(stream, temp_memory, mem_stream_size, NULL, &error);
+
+  mem_stream = SHCreateMemStream(temp_memory, mem_stream_size);
+
+  if (!mem_stream) {
+    g_critical("cern_bitmap_new_from_stream(...): Failed to create memory stream");
+    if (error) {
+      g_error_free(error);
+    }
+    g_free(temp_memory);
+    return NULL;
+  }
+
+  status = GdipCreateBitmapFromStream(mem_stream, &bitmap);
+
+  if (status != Ok) {
+    g_critical("cern_bitmap_new_from_stream(...): GdipCreateBitmapFromStream() Failed");
+    mem_stream->lpVtbl->Release(mem_stream);
+    if (error) {
+      g_error_free(error);
+    }
+    g_free(temp_memory);
+    return NULL;
+  }
+
+  if (error) {
+    g_error_free(error);
+  }
+  mem_stream->lpVtbl->Release(mem_stream);
+  g_free(temp_memory);
+
+  self = g_object_new(CERN_TYPE_BITMAP, NULL);
+  cern_bitmap_set_native(self, bitmap);
+  return self;
+}
+
+CernBitmap *
+cern_bitmap_new_from_h_icon(gpointer h_icon) {
+  CernBitmap *self;
+  GpStatus status;
+  gpointer bitmap;
+
+  status = GdipCreateBitmapFromHICON(h_icon, &bitmap);
+
+  if (status != Ok) {
+    g_warning("%s: GdipCreateBitmapFromHICON failed\n", __func__);
+    return NULL;
+  }
+
+  self = g_object_new(CERN_TYPE_BITMAP, NULL);
+  cern_bitmap_set_native(self, bitmap);
   return self;
 }
 
@@ -241,5 +362,7 @@ cern_bitmap_unlock_bits(CernBitmap *self, CernBitmapData *bitmap_data) {
 
   if (status != Ok) {
     g_warning("%s: GdipBitmapUnlockBits failed\n", __func__);
+  } else {
+    g_clear_object(&bitmap_data);
   }
 }

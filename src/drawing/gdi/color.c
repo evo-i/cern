@@ -201,7 +201,10 @@ static
 gint32
 cern_color_known_color_to_argb(CernKnownColor known_color) {
   cern_color_table_ensure_created();
-  return cern_color_to_argb((CernColor *) knwon_color_table[known_color].color);
+  if (known_color <= CernKnownColor_MenuHighlight) {
+    return knwon_color_table[known_color].color->value;
+  }
+  return 0;
 }
 
 gint32

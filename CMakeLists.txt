@@ -5,7 +5,7 @@ project (Cern C)
 find_package (Threads REQUIRED)
 find_package (PkgConfig REQUIRED)
 
-pkg_check_modules (GObject REQUIRED IMPORTED_TARGET "gobject-2.0")
+pkg_check_modules (GObject REQUIRED IMPORTED_TARGET "gobject-2.0;gio-2.0")
 
 add_library (cern_core
   SHARED
@@ -22,28 +22,34 @@ target_link_libraries (cern_core
 
 add_library (cern_drawing
   SHARED
-    src/drawing/gdi/bitmap.c
-    src/drawing/gdi/color_palette.c
     src/drawing/gdi/color.c
     src/drawing/gdi/drawing.c
-    src/drawing/gdi/image.c
     src/drawing/gdi/region.c
     src/drawing/gdi/graphics.c
-    src/drawing/gdi/size_f.c
-    src/drawing/gdi/point_f.c
-    src/drawing/gdi/rectangle_f.c
-    src/drawing/gdi/size.c
-    src/drawing/gdi/point.c
-    src/drawing/gdi/rectangle.c
-    src/drawing/gdi/property_item.c
     src/drawing/gdi/image_format.c
+    src/drawing/gdi/property_item.c
+    src/drawing/gdi/color_palette.c
     src/drawing/gdi/frame_dimension.c
     src/drawing/gdi/graphics_context.c
 
+    src/drawing/gdi/size.c
+    src/drawing/gdi/point.c
+    src/drawing/gdi/size_f.c
+    src/drawing/gdi/point_f.c
+    src/drawing/gdi/rectangle.c
+    src/drawing/gdi/rectangle_f.c
+
+    # images
+    src/drawing/gdi/icon.c
+    src/drawing/gdi/image.c
+    src/drawing/gdi/bitmap.c
+
+    # draw resources
     src/drawing/gdi/pen.c
     src/drawing/gdi/brush.c
     src/drawing/gdi/solid_brush.c
 
+    # 2d
     src/drawing/gdi/2d/matrix.c
     src/drawing/gdi/2d/hatch_brush.c
     src/drawing/gdi/2d/region_data.c
@@ -51,8 +57,10 @@ add_library (cern_drawing
     src/drawing/gdi/2d/graphics_state.c
     src/drawing/gdi/2d/graphics_container.c
 
+    # imaging
     src/drawing/gdi/imaging/bitmap_data.c
 
+    # internal
     src/drawing/gdi/internal/device_context.c
     src/drawing/gdi/internal/color_translator.c
     src/drawing/gdi/internal/i_device_context.c
@@ -65,6 +73,7 @@ target_include_directories (cern_drawing
 target_link_libraries (cern_drawing
   PUBLIC
     cern_core
+    Shlwapi
     Gdiplus
     Threads::Threads
     PkgConfig::GObject)
@@ -74,6 +83,27 @@ set_target_properties (cern_drawing
     C_STANDARD 17
     C_STANDARD_REQUIRED ON
     C_EXTENSIONS OFF)
+
+add_library (cern_io
+  SHARED
+    src/io/stream.c)
+
+target_link_libraries (cern_io
+  PUBLIC
+    ws2_32
+    cern_core
+    Threads::Threads
+    PkgConfig::GObject)
+
+set_target_properties (cern_io
+  PROPERTIES
+    C_STANDARD 17
+    C_STANDARD_REQUIRED ON
+    C_EXTENSIONS OFF)
+
+target_include_directories (cern_io
+  PRIVATE
+    "include/")
 
 add_library (cern_ui
   SHARED
@@ -97,8 +127,8 @@ target_link_libraries (cern_ui
     Threads::Threads
     PkgConfig::GObject)
 
-add_executable (main main.c)
+# add_executable (main main.c)
 
-target_link_libraries(main PRIVATE cern_ui cern_drawing)
+# target_link_libraries(main PRIVATE cern_ui cern_drawing)
 
-target_include_directories (main PRIVATE "include/")
+# target_include_directories (main PRIVATE "include/")

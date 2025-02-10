@@ -2,6 +2,7 @@
 #define CERN_BITMAP_H 1
 
 #include <glib-object.h>
+
 #include "image.h"
 #include "color.h"
 #include "rectangle.h"
@@ -15,7 +16,19 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (CernBitmap, cern_bitmap, CERN, BITMAP, CernImage)
 
 CernBitmap *
+cern_bitmap_new(guint32 width, guint32 height);
+
+CernBitmap *
+cern_bitmap_new_with_format(guint32 width, guint32 height, CernPixelFormat pixel_format);
+
+CernBitmap *
 cern_bitmap_new_from_file(const char *filename);
+
+CernBitmap *
+cern_bitmap_new_from_stream(GInputStream *stream);
+
+CernBitmap *
+cern_bitmap_new_from_h_icon(gpointer h_icon);
 
 CernBitmap *
 cern_bitmap_new_from_data(const char *data, int width, int height);

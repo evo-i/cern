@@ -55,12 +55,36 @@ cern_color_is_named(CernColor *self);
 gboolean
 cern_color_is_system(CernColor *self);
 
+/**
+ * cern_color_get_brightness:
+ * @self: a #CernColor
+ *
+ * Gets the brightness value of the color.
+ *
+ * Returns: the brightness value of the color, ranging from 0.0 (black) to 1.0 (white).
+ */
 float
 cern_color_get_brightness(CernColor *self);
 
+/**
+ * cern_color_get_hue:
+ * @self: a #CernColor
+ *
+ * Gets the hue value of the color.
+ *
+ * Returns: the hue value of the color, ranging from 0.0 (red) to 1.0 (red again).
+ */
 float
 cern_color_get_hue(CernColor *self);
 
+/**
+ * cern_color_get_saturation:
+ * @self: a #CernColor
+ *
+ * Gets the saturation value of the color.
+ *
+ * Returns: the saturation value of the color, ranging from 0.0 (grayscale) to 1.0 (fully saturated).
+ */
 float
 cern_color_get_saturation(CernColor *self);
 

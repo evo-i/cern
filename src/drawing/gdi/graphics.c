@@ -256,7 +256,7 @@ cern_graphics_get_hdc(CernGraphics *self) {
     return NULL;
   }
 
-  return (gpointer) hdc;
+  return self->hdc = (gpointer) hdc;
 }
 
 void
@@ -2856,7 +2856,7 @@ cern_graphics_measure_string_point_format(CernGraphics *self, const gchar *text,
 
 CernSizeF
 cern_graphics_measure_string_layout(CernGraphics *self, const gchar *text,
-                                   CernFont *font, CernSizeF *layout_area);
+                                    CernFont *font, CernSizeF *layout_area);
 
 CernSizeF
 cern_graphics_measure_string_format(CernGraphics *self, const gchar *text,
@@ -2908,7 +2908,21 @@ cern_graphics_draw_image_xy(CernGraphics *self, CernImage *image,
 void
 cern_graphics_draw_image_rect(CernGraphics *self, CernImage *image,
                               CernRectangleF *rect) {
-  g_critical("%s Not implemented", __func__);
+  GpStatus status;
+
+  gpointer image_ptr;
+  CernNativeGdiObject *image_object;
+
+  image_object = CERN_NATIVE_GDI_OBJECT(image);
+  image_ptr = cern_native_gdi_object_get_native_handle(image_object);
+
+  status
+    = GdipDrawImageRect(self->handle, image_ptr, rect->x, rect->y, rect->width, rect->height);
+
+
+  if (status!= Ok) {
+    g_warning("cern_graphics_draw_image_rect(...): GdipDrawImageRect() failed: %d", status);
+  }
 }
 
 void

@@ -5,7 +5,6 @@
 
 struct _CernBitmapData {
   GObject parent_instance;
-
   BitmapData data;
 };
 
@@ -25,7 +24,6 @@ static void
 cern_bitmap_data_finalize(GObject *object) {
   CernBitmapData *self = CERN_BITMAP_DATA(object);
 
-  // Finalization code here
   G_OBJECT_CLASS(cern_bitmap_data_parent_class)->finalize(object);
 }
 
