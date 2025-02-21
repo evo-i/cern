@@ -66,7 +66,6 @@ cern_matrix_class_init(CernMatrixClass *klass) {
   G_OBJECT_CLASS(klass)->finalize = cern_matrix_finalize;
 }
 
-static
 CernMatrix *
 cern_matrix_from_native(gpointer handle) {
   CernMatrix *self;

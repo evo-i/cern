@@ -10,7 +10,7 @@ struct _CernPen {
   GObject parent_instance;
 
   gpointer pen;
-  CernColor *color;
+  CernColor color;
 };
 
 static
@@ -490,16 +490,16 @@ cern_pen_get_pen_type(CernPen *self) {
   return pen_type;
 }
 
-CernColor *
+CernColor
 cern_pen_get_color(CernPen *self) {
   ARGB argb;
   GpStatus status;
 
-  if (cern_color_is_empty(self->color)) {
+  if (cern_color_is_empty(&self->color)) {
     status = GdipGetPenColor(self->pen, &argb);
     if (status != Ok) {
       g_critical("cern_pen_get_color(): GdipGetPenColor() failed");
-      return (CernColor *) cern_color_empty();
+      return cern_color_empty();
     }
 
     self->color = cern_color_from_argb(argb);

@@ -15,6 +15,12 @@ typedef struct _CernSize {
 GType
 cern_size_get_type (void);
 
+inline
+CernSize
+cern_size_empty (void) {
+  return (CernSize) { 0 };
+}
+
 CernSize *
 cern_size_new (gint32 width, gint32 height);
 

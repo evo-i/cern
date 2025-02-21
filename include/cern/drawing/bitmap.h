@@ -31,6 +31,12 @@ CernBitmap *
 cern_bitmap_new_from_h_icon(gpointer h_icon);
 
 CernBitmap *
+cern_bitmap_new_from_h_bitmap(gpointer h_bitmap);
+
+CernBitmap *
+cern_bitmap_new_from_h_bitmap_with_palette(gpointer h_bitmap, gpointer h_palette);
+
+CernBitmap *
 cern_bitmap_new_from_data(const char *data, int width, int height);
 
 gpointer
@@ -42,7 +48,7 @@ cern_bitmap_get_h_bitmap_with_background(CernBitmap *self, CernColor *bg);
 gpointer
 cern_bitmap_get_h_icon(CernBitmap *self);
 
-CernColor *
+CernColor
 cern_bitmap_get_pixel(CernBitmap *self, int x, int y);
 
 void

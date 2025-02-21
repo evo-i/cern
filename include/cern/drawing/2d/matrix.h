@@ -24,7 +24,7 @@ cern_matrix_new_from_values(gfloat m11, gfloat m12, gfloat m21, gfloat m22,
 
 CernMatrix *
 cern_matrix_new_from_rectangle_and_points(CernRectangleF *rect,
-                                            CernPointF *points, gsize points_count);
+                                          CernPointF *points, gsize points_count);
 
 CernMatrix *
 cern_matrix_new_from_rectangle_and_points_i(CernRectangle *rect,

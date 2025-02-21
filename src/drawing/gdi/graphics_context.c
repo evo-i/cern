@@ -8,7 +8,7 @@
 typedef struct _CernGraphicsContext {
   GObject parent_instance;
   guint context_state;
-  CernPointF *transform_offset;
+  CernPointF transform_offset;
   CernRegion *clip_region;
   struct _CernGraphicsContext *next_context;
   struct _CernGraphicsContext *prev_context;
@@ -61,8 +61,8 @@ cern_graphics_context_new(CernGraphics *graphics) {
   if (!is_identity) {
     REAL elements[6];
     GdipGetMatrixElements(transform, elements);
-    cern_point_f_set_x(self->transform_offset, elements[4]);
-    cern_point_f_set_y(self->transform_offset, elements[5]);
+    cern_point_f_set_x(&self->transform_offset, elements[4]);
+    cern_point_f_set_y(&self->transform_offset, elements[5]);
   }
 
   GdipDeleteMatrix(transform);
@@ -91,7 +91,7 @@ cern_graphics_context_set_state(CernGraphicsContext *self, guint state) {
   self->context_state = state;
 }
 
-CernPointF *
+CernPointF
 cern_graphics_context_get_transform_offset(CernGraphicsContext *self) {
   return self->transform_offset;
 }

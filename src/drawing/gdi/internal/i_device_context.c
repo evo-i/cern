@@ -6,7 +6,7 @@ static
 void
 cern_i_device_context_default_init(CernIDeviceContextInterface *iface) { }
 
-HDC
+gpointer
 cern_i_device_context_get_hdc(CernIDeviceContext *self) {
   CernIDeviceContextInterface *iface;
 

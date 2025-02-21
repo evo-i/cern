@@ -85,7 +85,7 @@ cern_solid_brush_new_immutable(CernColor *color, gboolean is_immutable) {
   return CERN_BRUSH(self);
 }
 
-CernColor *
+CernColor
 cern_solid_brush_get_color(CernSolidBrush *self) {
   GpStatus status;
   ARGB color;
@@ -94,7 +94,7 @@ cern_solid_brush_get_color(CernSolidBrush *self) {
 
   if (status != Ok) {
     g_warning("Failed to get solid brush color: %d", status);
-    return NULL;
+    return cern_color_empty();
   }
 
   return cern_color_from_argb(color);

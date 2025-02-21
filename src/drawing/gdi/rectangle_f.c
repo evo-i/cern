@@ -151,7 +151,7 @@ cern_rectangle_f_contains_coords(CernRectangleF *self, gfloat x, gfloat y) {
 
 CernPointF
 cern_rectangle_f_get_location(CernRectangleF *self) {
-  return cern_point_f_create_with_coords(self->x, self->y);
+  return cern_point_f_create(self->x, self->y);
 }
 
 void

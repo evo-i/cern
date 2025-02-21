@@ -22,7 +22,7 @@ cern_graphics_context_get_state(CernGraphicsContext *self);
 void
 cern_graphics_context_set_state(CernGraphicsContext *self, guint state);
 
-CernPointF *
+CernPointF
 cern_graphics_context_get_transform_offset(CernGraphicsContext *self);
 
 CernRegion *

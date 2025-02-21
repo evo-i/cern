@@ -136,7 +136,7 @@ cern_pen_rotate_transform_with_order(CernPen *self, gfloat angle,
 CernPenType
 cern_pen_get_pen_type(CernPen *self);
 
-CernColor *
+CernColor
 cern_pen_get_color(CernPen *self);
 
 void

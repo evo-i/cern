@@ -110,7 +110,7 @@ cern_hatch_brush_get_style(CernHatchBrush *self) {
   return (CernHatchStyle) style;
 }
 
-CernColor *
+CernColor
 cern_hatch_brush_get_foreground_color(CernHatchBrush *self) {
   GpStatus status;
   ARGB color;
@@ -119,13 +119,13 @@ cern_hatch_brush_get_foreground_color(CernHatchBrush *self) {
     = GdipGetHatchForegroundColor(cern_hatch_brush_get_native(self), &color);
 
   if (status != Ok) {
-    return NULL;
+    return cern_color_empty();
   }
 
   return cern_color_from_argb(color);
 }
 
-CernColor *
+CernColor
 cern_hatch_brush_get_background_color(CernHatchBrush *self) {
   GpStatus status;
   ARGB color;
@@ -134,7 +134,7 @@ cern_hatch_brush_get_background_color(CernHatchBrush *self) {
     = GdipGetHatchBackgroundColor(cern_hatch_brush_get_native(self), &color);
 
   if (status != Ok) {
-    return NULL;
+    return cern_color_empty();
   }
 
   return cern_color_from_argb(color);

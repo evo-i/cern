@@ -61,6 +61,15 @@ cern_region_complement_with_rectangle(CernRegion *region, CernRectangle *rect);
 void
 cern_region_complement_with_rectangle_f(CernRegion *region, CernRectangleF *rect);
 
+void
+cern_region_translate(CernRegion *self, gint32 dx, gint32 dy);
+
+void
+cern_region_translate_f(CernRegion *self, gfloat dx, gfloat dy);
+
+void
+cern_region_transform(CernRegion *self, CernMatrix *matrix);
+
 /* exclude */
 void
 cern_region_exclude(CernRegion *self, CernRegion *region);
@@ -79,7 +88,7 @@ CernRectangleF
 cern_region_get_bounds_f(CernRegion *self, CernGraphics *graphics);
 
 gpointer
-cern_region_get_h_region(CernRegion *self);
+cern_region_get_h_region(CernRegion *self, CernGraphics *graphics);
 
 void
 cern_region_release_h_region(CernRegion *self, gpointer h_region);

@@ -15,6 +15,12 @@ typedef struct _CernRectangle {
   gint32 height;
 } CernRectangle;
 
+inline
+CernRectangle
+cern_rectangle_empty(void) {
+  return (CernRectangle) { 0 };
+}
+
 CernRectangle
 cern_rectangle_create(gint32 x, gint32 y, gint32 width, gint32 height);
 

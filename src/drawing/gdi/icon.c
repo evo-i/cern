@@ -714,17 +714,20 @@ cern_icon_bitmap_frame(CernIcon *self) {
   if (bitmap == NULL) {
     CernSize size = cern_icon_get_size(self);
     CernBitmap *temp_bitmap = cern_bitmap_new_from_h_icon(self->handle);
+
     CernRectangle draw_rect
       = cern_rectangle_create(0, 0, size.width, size.height);
     bitmap = cern_bitmap_new(size.width, size.height);
-    CernGraphics *gfx = cern_graphics_new_from_image(CERN_IMAGE(bitmap));
 
-    cern_graphics_draw_image_rect_i(gfx, CERN_IMAGE(temp_bitmap), &draw_rect);
+    CernGraphics *graphics
+      = cern_graphics_new_from_image(CERN_IMAGE(bitmap));
 
-    // FIXME: Add more code...
+    cern_graphics_draw_image_rect_i(graphics, CERN_IMAGE(temp_bitmap), &draw_rect);
+
+
 
     g_object_unref(temp_bitmap);
-    g_object_unref(gfx);
+    g_object_unref(graphics);
   }
 
   return bitmap;

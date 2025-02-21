@@ -22,7 +22,7 @@ cern_color_translator_to_win32(CernColor *self) {
         | b << WIN32_BLUE_SHIFT);
 }
 
-CernColor *
+CernColor
 cern_color_translator_from_win32(gint32 argb) {
   return
     cern_color_translator_from_ole(argb);
@@ -104,7 +104,7 @@ cern_color_translator_to_ole(CernColor *self) {
   return cern_color_translator_to_win32(self);
 }
 
-CernColor *
+CernColor
 cern_color_translator_from_ole(gint32 ole) {
   gint32 argb_color;
 

@@ -11,60 +11,76 @@
 #define CERN_COLOR_ARGB_GREEN_SHIFT         8
 #define CERN_COLOR_ARGB_BLUE_SHIFT          0
 
-struct _CernColor {
-  GObject parent_instance;
-
-  gchar *name;
-  gint64 value;
-  gint16 known_color;
-  gint16 state;
-};
-
-G_DEFINE_FINAL_TYPE(CernColor, cern_color, G_TYPE_OBJECT)
+G_DEFINE_BOXED_TYPE(CernColor, cern_color, cern_color_copy, cern_color_free)
 
 static
-void
-cern_color_init(CernColor *self) {
-  // Initialization code here
+CernColor
+cern_color_create_known_color(CernKnownColor known_color) {
+  return (CernColor) {
+    .known_color = known_color,
+    .state = CERN_COLOR_STATE_KNOWN_COLOR_VALID,
+    0
+  };
 }
 
-static
-void
-cern_color_finalize(GObject *object) {
-  CernColor *self = CERN_COLOR(object);
-  g_free(self->name);
-  G_OBJECT_CLASS(cern_color_parent_class)->finalize(object);
+CernColor *
+cern_color_new(void) {
+  return g_new0(CernColor, 1);
 }
 
-static
+CernColor *
+cern_color_copy(CernColor *self) {
+  CernColor *copy;
+
+  copy = cern_color_new();
+
+  if (self->name.freedable) {
+    copy->name.value = g_strdup(self->name.value);
+    copy->name.freedable = TRUE;
+  }
+
+  copy->value = self->value;
+  copy->state = self->state;
+  copy->known_color = self->known_color;
+
+  return copy;
+}
+
 void
-cern_color_class_init(CernColorClass *klass) {
-  GObjectClass *object_class = G_OBJECT_CLASS(klass);
-  object_class->finalize = cern_color_finalize;
+cern_color_free(CernColor *self) {
+  if(!self->name.freedable) {
+    g_warning("cern_color_free: An attempt was made to delete an object without directly allocating memory or the object from the cache.");
+    return;
+  }
+  if (self->name.freedable) {
+    g_free(self->name.value);
+  }
+  g_free(self);
 }
 
 static
 CernColor *
-cern_color_new_known_color(CernKnownColor known_color) {
-  CernColor *self = g_object_new(CERN_TYPE_COLOR, NULL);
-
-  self->known_color = known_color;
-  self->state = CERN_COLOR_STATE_KNOWN_COLOR_VALID;
-
-  return self;
-}
-
-static
-CernColor *
-cern_color_new(gint64 value, gint16 state, gchar const *name, CernKnownColor known_color) {
-  CernColor *self = g_object_new(CERN_TYPE_COLOR, NULL);
+cern_color_new_internal(gint64 value, gint16 state, gchar const *name, CernKnownColor known_color) {
+  CernColor *self = cern_color_new();
 
   self->value = value;
   self->state = state;
-  self->name = name ? g_strdup(name) : NULL;
+  self->name.value = name ? g_strdup(name) : NULL;
+  self->name.freedable = name ? TRUE : FALSE;
   self->known_color = known_color;
 
   return self;
+}
+
+CernColor
+cern_color_create(gint64 value, gint16 state, gchar const *name, CernKnownColor known_color) {
+  return (CernColor) {
+    .known_color = known_color,
+    .state = state,
+    .value = value,
+    .name.value = name ? g_strdup(name) : NULL,
+    .name.freedable = name ? TRUE : FALSE
+  };
 }
 
 static
@@ -77,38 +93,55 @@ cern_color_make_argb(guint8 alpha, guint8 red, guint8 green, guint8 blue) {
       ((gint64) (guint32) alpha << CERN_COLOR_ARGB_ALPHA_SHIFT));
 }
 
-CernColor *
+CernColor
 cern_color_from_argb(guint32 argb) {
   return
-    cern_color_new((argb & 0xffffffff),
+    cern_color_create((argb & 0xffffffff),
                    CERN_COLOR_STATE_ARGB_VALUE_VALID, NULL, 0);
 }
 
-CernColor *
+CernColor
 cern_color_from_argb_uint8(guint8 a, guint8 r, guint8 g, guint8 b) {
   return
-    cern_color_new(cern_color_make_argb(a, r, g, b),
-                   CERN_COLOR_STATE_ARGB_VALUE_VALID, NULL, 0);
+    cern_color_create(cern_color_make_argb(a, r, g, b),
+                      CERN_COLOR_STATE_ARGB_VALUE_VALID, NULL, 0);
 }
 
-CernColor *
+void
+cern_color_init_argb(CernColor *self, guint32 argb) {
+  self->value = argb;
+  self->state = CERN_COLOR_STATE_ARGB_VALUE_VALID;
+  self->known_color = 0;
+  self->name.value = NULL;
+  self->name.freedable = FALSE;
+}
+
+CernColor
 cern_color_from_argb_other(guint8 alpha, CernColor *other) {
   return
-    cern_color_new(cern_color_make_argb(alpha,
-                                         cern_color_get_red(other),
-                                         cern_color_get_green(other),
-                                         cern_color_get_blue(other)),
-                   CERN_COLOR_STATE_ARGB_VALUE_VALID, NULL, 0);
+    cern_color_create(cern_color_make_argb(alpha,
+                      cern_color_get_red(other),
+                      cern_color_get_green(other),
+                      cern_color_get_blue(other)),
+                      CERN_COLOR_STATE_ARGB_VALUE_VALID, NULL, 0);
 }
 
+static
 CernColor *
+cern_color_new_from_known_color(CernKnownColor known_color) {
+  return
+    cern_color_new_internal(0, CERN_COLOR_STATE_KNOWN_COLOR_VALID, NULL, known_color);
+}
+
+CernColor
 cern_color_from_known_color(CernKnownColor known_color) {
-  return cern_color_new_known_color(known_color);
+  return cern_color_create_known_color(known_color);
 }
 
-CernColor *
+CernColor
 cern_color_from_name(gchar const *name) {
-
+  g_critical("cern_color_from_name: not implemented");
+  return cern_color_empty();
 }
 
 guint8
@@ -134,7 +167,7 @@ cern_color_get_blue(CernColor *self) {
 
 gchar const *
 cern_color_get_name(CernColor *self) {
-  return self->name;
+  return self->name.value;
 }
 
 gboolean
@@ -149,7 +182,7 @@ cern_color_is_empty(CernColor *self) {
 
 gboolean
 cern_color_is_named(CernColor *self) {
-  return self->name != NULL;
+  return self->name.value != NULL;
 }
 
 gboolean
@@ -181,20 +214,29 @@ static
 struct {
   CernKnownColor known_color;
   CernColor const *color;
-} knwon_color_table[CERN_KNOWN_COLOR_END] = { 0 };
+} known_color_table[CERN_KNOWN_COLOR_END] = { 0 };
 
 static
 void
-cern_color_table_ensure_created() {
-  if (knwon_color_table[0].color) {
+cern_color_table_ensure_created(void) {
+  if (known_color_table[0].color) {
     return;
   }
 
   CernKnownColor i;
   for (i = CernKnownColor_ActiveBorder; i < CERN_KNOWN_COLOR_END; ++i) {
-    knwon_color_table[i].known_color = i;
-    knwon_color_table[i].color = cern_color_from_known_color(i);
+    known_color_table[i].known_color = i;
+    known_color_table[i].color = cern_color_new_from_known_color(i);
   }
+}
+
+static
+CernColor
+cern_copy_of_table_value(CernKnownColor known_color) {
+  cern_color_table_ensure_created();
+  CernColor copy = (*known_color_table[known_color].color);
+  copy.name.freedable = FALSE;
+  return copy;
 }
 
 static
@@ -202,7 +244,7 @@ gint32
 cern_color_known_color_to_argb(CernKnownColor known_color) {
   cern_color_table_ensure_created();
   if (known_color <= CernKnownColor_MenuHighlight) {
-    return knwon_color_table[known_color].color->value;
+    return known_color_table[known_color].color->value;
   }
   return 0;
 }
@@ -219,854 +261,712 @@ cern_color_to_argb(CernColor *self) {
   return 0;
 }
 
-CernColor const *
+CernColor
 cern_color_empty(void) {
-  return NULL;
+  return (CernColor) { 0 };
 }
 
-CernColor const *
+CernColor
 cern_color_transparent(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Transparent].color;
+  return cern_copy_of_table_value(CernKnownColor_Transparent);
 }
 
-CernColor const *
+CernColor
 cern_color_alice_blue(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_AliceBlue].color;
+  return cern_copy_of_table_value(CernKnownColor_AliceBlue);
 }
 
-CernColor const *
+CernColor
 cern_color_antique_white(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_AntiqueWhite].color;
+  return cern_copy_of_table_value(CernKnownColor_AntiqueWhite);
 }
 
-CernColor const *
+CernColor
 cern_color_aqua(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Aqua].color;
+  return cern_copy_of_table_value(CernKnownColor_Aqua);
 }
 
-CernColor const *
+CernColor
 cern_color_aquamarine(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Aquamarine].color;
+  return cern_copy_of_table_value(CernKnownColor_Aquamarine);
 }
 
-CernColor const *
+CernColor
 cern_color_azure(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Azure].color;
+  return cern_copy_of_table_value(CernKnownColor_Azure);
 }
 
-CernColor const *
+CernColor
 cern_color_beige(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Beige].color;
+  return cern_copy_of_table_value(CernKnownColor_Beige);
 }
 
-CernColor const *
+CernColor
 cern_color_bisque(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Bisque].color;
+  return cern_copy_of_table_value(CernKnownColor_Bisque);
 }
 
-CernColor const *
+CernColor
 cern_color_black(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Black].color;
+  return cern_copy_of_table_value(CernKnownColor_Black);
 }
 
-CernColor const *
+CernColor
 cern_color_blanched_almond(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_BlanchedAlmond].color;
+  return cern_copy_of_table_value(CernKnownColor_BlanchedAlmond);
 }
 
-CernColor const *
+CernColor
 cern_color_blue(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Blue].color;
+  return cern_copy_of_table_value(CernKnownColor_Blue);
 }
 
-CernColor const *
+CernColor
 cern_color_blue_violet(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_BlueViolet].color;
+  return cern_copy_of_table_value(CernKnownColor_BlueViolet);
 }
 
-CernColor const *
+CernColor
 cern_color_brown(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Brown].color;
+  return cern_copy_of_table_value(CernKnownColor_Brown);
 }
 
-CernColor const *
+CernColor
 cern_color_burly_wood(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_BurlyWood].color;
+  return cern_copy_of_table_value(CernKnownColor_BurlyWood);
 }
 
-CernColor const *
+CernColor
 cern_color_cadet_blue(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_CadetBlue].color;
+  return cern_copy_of_table_value(CernKnownColor_CadetBlue);
 }
 
-CernColor const *
+CernColor
 cern_color_chartreuse(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Chartreuse].color;
+  return cern_copy_of_table_value(CernKnownColor_Chartreuse);
 }
 
-CernColor const *
+CernColor
 cern_color_chocolate(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Chocolate].color;
+  return cern_copy_of_table_value(CernKnownColor_Chocolate);
 }
 
-CernColor const *
+CernColor
 cern_color_coral(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Coral].color;
+  return cern_copy_of_table_value(CernKnownColor_Coral);
 }
 
-CernColor const *
+CernColor
 cern_color_cornflower_blue(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_CornflowerBlue].color;
+  return cern_copy_of_table_value(CernKnownColor_CornflowerBlue);
 }
 
-CernColor const *
+CernColor
 cern_color_cornsilk(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Cornsilk].color;
+  return cern_copy_of_table_value(CernKnownColor_Cornsilk);
 }
 
-CernColor const *
+CernColor
 cern_color_crimson(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Crimson].color;
+  return cern_copy_of_table_value(CernKnownColor_Crimson);
 }
 
-CernColor const *
+CernColor
 cern_color_cyan(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Cyan].color;
+  return cern_copy_of_table_value(CernKnownColor_Cyan);
 }
 
-CernColor const *
+CernColor
 cern_color_dark_blue(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DarkBlue].color;
+  return cern_copy_of_table_value(CernKnownColor_DarkBlue);
 }
 
-CernColor const *
+CernColor
 cern_color_dark_cyan(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DarkCyan].color;
+  return cern_copy_of_table_value(CernKnownColor_DarkCyan);
 }
 
-CernColor const *
+CernColor
 cern_color_dark_goldenrod(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DarkGoldenrod].color;
+  return cern_copy_of_table_value(CernKnownColor_DarkGoldenrod);
 }
 
-CernColor const *
+CernColor
 cern_color_dark_gray(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DarkGray].color;
+  return cern_copy_of_table_value(CernKnownColor_DarkGray);
 }
 
-CernColor const *
+CernColor
 cern_color_dark_green(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DarkGreen].color;
+  return cern_copy_of_table_value(CernKnownColor_DarkGreen);
 }
 
-CernColor const *
+CernColor
 cern_color_dark_khaki(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DarkKhaki].color;
+  return cern_copy_of_table_value(CernKnownColor_DarkKhaki);
 }
 
-CernColor const *
+CernColor
 cern_color_dark_magenta(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DarkMagenta].color;
+  return cern_copy_of_table_value(CernKnownColor_DarkMagenta);
 }
 
-CernColor const *
+CernColor
 cern_color_dark_olive_green(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DarkOliveGreen].color;
+  return cern_copy_of_table_value(CernKnownColor_DarkOliveGreen);
 }
 
-CernColor const *
+CernColor
 cern_color_dark_orange(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DarkOrange].color;
+  return cern_copy_of_table_value(CernKnownColor_DarkOrange);
 }
 
-CernColor const *
+CernColor
 cern_color_dark_orchid(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DarkOrchid].color;
+  return cern_copy_of_table_value(CernKnownColor_DarkOrchid);
 }
 
-CernColor const *
+CernColor
 cern_color_dark_red(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DarkRed].color;
+  return cern_copy_of_table_value(CernKnownColor_DarkRed);
 }
 
-CernColor const *
+CernColor
 cern_color_dark_salmon(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DarkSalmon].color;
+  return cern_copy_of_table_value(CernKnownColor_DarkSalmon);
 }
 
-CernColor const *
+CernColor
 cern_color_dark_sea_green(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DarkSeaGreen].color;
+  return cern_copy_of_table_value(CernKnownColor_DarkSeaGreen);
 }
 
-CernColor const *
+CernColor
 cern_color_dark_slate_blue(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DarkSlateBlue].color;
+  return cern_copy_of_table_value(CernKnownColor_DarkSlateBlue);
 }
 
-CernColor const *
+CernColor
 cern_color_dark_slate_gray(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DarkSlateGray].color;
+  return cern_copy_of_table_value(CernKnownColor_DarkSlateGray);
 }
 
-CernColor const *
+CernColor
 cern_color_dark_turquoise(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DarkTurquoise].color;
+  return cern_copy_of_table_value(CernKnownColor_DarkTurquoise);
 }
 
-CernColor const *
+CernColor
 cern_color_dark_violet(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DarkViolet].color;
+  return cern_copy_of_table_value(CernKnownColor_DarkViolet);
 }
 
-CernColor const *
+CernColor
 cern_color_deep_pink(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DeepPink].color;
+  return cern_copy_of_table_value(CernKnownColor_DeepPink);
 }
 
-CernColor const *
+CernColor
 cern_color_deep_sky_blue(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DeepSkyBlue].color;
+  return cern_copy_of_table_value(CernKnownColor_DeepSkyBlue);
 }
 
-CernColor const *
+CernColor
 cern_color_dim_gray(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DimGray].color;
+  return cern_copy_of_table_value(CernKnownColor_DimGray);
 }
 
-CernColor const *
+CernColor
 cern_color_dodger_blue(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_DodgerBlue].color;
+  return cern_copy_of_table_value(CernKnownColor_DodgerBlue);
 }
 
-CernColor const *
+CernColor
 cern_color_firebrick(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Firebrick].color;
+  return cern_copy_of_table_value(CernKnownColor_Firebrick);
 }
 
-CernColor const *
+CernColor
 cern_color_floral_white(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_FloralWhite].color;
+  return cern_copy_of_table_value(CernKnownColor_FloralWhite);
 }
 
-CernColor const *
+CernColor
 cern_color_forest_green(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_ForestGreen].color;
+  return cern_copy_of_table_value(CernKnownColor_ForestGreen);
 }
 
-CernColor const *
+CernColor
 cern_color_fuchsia(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Fuchsia].color;
+  return cern_copy_of_table_value(CernKnownColor_Fuchsia);
 }
 
-CernColor const *
+CernColor
 cern_color_gainsboro(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Gainsboro].color;
+  return cern_copy_of_table_value(CernKnownColor_Gainsboro);
 }
 
-CernColor const *
+CernColor
 cern_color_ghost_white(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_GhostWhite].color;
+  return cern_copy_of_table_value(CernKnownColor_GhostWhite);
 }
 
-CernColor const *
+CernColor
 cern_color_gold(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Gold].color;
+  return cern_copy_of_table_value(CernKnownColor_Gold);
 }
 
-CernColor const *
+CernColor
 cern_color_goldenrod(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Goldenrod].color;
+  return cern_copy_of_table_value(CernKnownColor_Goldenrod);
 }
 
-CernColor const *
+CernColor
 cern_color_gray(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Gray].color;
+  return cern_copy_of_table_value(CernKnownColor_Gray);
 }
 
-CernColor const *
+CernColor
 cern_color_green(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Green].color;
+  return cern_copy_of_table_value(CernKnownColor_Green);
 }
 
-CernColor const *
+CernColor
 cern_color_green_yellow(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_GreenYellow].color;
+  return cern_copy_of_table_value(CernKnownColor_GreenYellow);
 }
 
-CernColor const *
+CernColor
 cern_color_honeydew(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Honeydew].color;
+  return cern_copy_of_table_value(CernKnownColor_Honeydew);
 }
 
-CernColor const *
+CernColor
 cern_color_hot_pink(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_HotPink].color;
+  return cern_copy_of_table_value(CernKnownColor_HotPink);
 }
 
-CernColor const *
+CernColor
 cern_color_indian_red(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_IndianRed].color;
+  return cern_copy_of_table_value(CernKnownColor_IndianRed);
 }
 
-CernColor const *
+CernColor
 cern_color_indigo(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Indigo].color;
+  return cern_copy_of_table_value(CernKnownColor_Indigo);
 }
 
-CernColor const *
+CernColor
 cern_color_ivory(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Ivory].color;
+  return cern_copy_of_table_value(CernKnownColor_Ivory);
 }
 
-CernColor const *
+CernColor
 cern_color_khaki(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Khaki].color;
+  return cern_copy_of_table_value(CernKnownColor_Khaki);
 }
 
-CernColor const *
+CernColor
 cern_color_lavender(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Lavender].color;
+  return cern_copy_of_table_value(CernKnownColor_Lavender);
 }
 
-CernColor const *
+CernColor
 cern_color_lavender_blush(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_LavenderBlush].color;
+  return cern_copy_of_table_value(CernKnownColor_LavenderBlush);
 }
 
-CernColor const *
+CernColor
 cern_color_lawn_green(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_LawnGreen].color;
+  return cern_copy_of_table_value(CernKnownColor_LawnGreen);
 }
 
-CernColor const *
+CernColor
 cern_color_lemon_chiffon(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_LemonChiffon].color;
+  return cern_copy_of_table_value(CernKnownColor_LemonChiffon);
 }
 
-CernColor const *
+CernColor
 cern_color_light_blue(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_LightBlue].color;
+  return cern_copy_of_table_value(CernKnownColor_LightBlue);
 }
 
-CernColor const *
+CernColor
 cern_color_light_coral(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_LightCoral].color;
+  return cern_copy_of_table_value(CernKnownColor_LightCoral);
 }
 
-CernColor const *
+CernColor
 cern_color_light_cyan(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_LightCyan].color;
+  return cern_copy_of_table_value(CernKnownColor_LightCyan);
 }
 
-CernColor const *
+CernColor
 cern_color_light_goldenrod_yellow(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_LightGoldenrodYellow].color;
+  return cern_copy_of_table_value(CernKnownColor_LightGoldenrodYellow);
 }
 
-CernColor const *
+CernColor
 cern_color_light_green(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_LightGreen].color;
+  return cern_copy_of_table_value(CernKnownColor_LightGreen);
 }
 
-CernColor const *
+CernColor
 cern_color_light_gray(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_LightGray].color;
+  return cern_copy_of_table_value(CernKnownColor_LightGray);
 }
 
-CernColor const *
+CernColor
 cern_color_light_pink(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_LightPink].color;
+  return cern_copy_of_table_value(CernKnownColor_LightPink);
 }
 
-CernColor const *
+CernColor
 cern_color_light_salmon(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_LightSalmon].color;
+  return cern_copy_of_table_value(CernKnownColor_LightSalmon);
 }
 
-CernColor const *
+CernColor
 cern_color_light_sea_green(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_LightSeaGreen].color;
+  return cern_copy_of_table_value(CernKnownColor_LightSeaGreen);
 }
 
-CernColor const *
+CernColor
 cern_color_light_sky_blue(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_LightSkyBlue].color;
+  return cern_copy_of_table_value(CernKnownColor_LightSkyBlue);
 }
 
-CernColor const *
+CernColor
 cern_color_light_slate_gray(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_LightSlateGray].color;
+  return cern_copy_of_table_value(CernKnownColor_LightSlateGray);
 }
 
-CernColor const *
+CernColor
 cern_color_light_steel_blue(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_LightSteelBlue].color;
+  return cern_copy_of_table_value(CernKnownColor_LightSteelBlue);
 }
 
-CernColor const *
+CernColor
 cern_color_light_yellow(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_LightYellow].color;
+  return cern_copy_of_table_value(CernKnownColor_LightYellow);
 }
 
-CernColor const *
+CernColor
 cern_color_lime(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Lime].color;
+  return cern_copy_of_table_value(CernKnownColor_Lime);
 }
 
-CernColor const *
+CernColor
 cern_color_lime_green(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_LimeGreen].color;
+  return cern_copy_of_table_value(CernKnownColor_LimeGreen);
 }
 
-CernColor const *
+CernColor
 cern_color_linen(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Linen].color;
+  return cern_copy_of_table_value(CernKnownColor_Linen);
 }
 
-CernColor const *
+CernColor
 cern_color_magenta(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Magenta].color;
+  return cern_copy_of_table_value(CernKnownColor_Magenta);
 }
 
-CernColor const *
+CernColor
 cern_color_maroon(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Maroon].color;
+  return cern_copy_of_table_value(CernKnownColor_Maroon);
 }
 
-CernColor const *
+CernColor
 cern_color_medium_aquamarine(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_MediumAquamarine].color;
+  return cern_copy_of_table_value(CernKnownColor_MediumAquamarine);
 }
 
-CernColor const *
+CernColor
 cern_color_medium_blue(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_MediumBlue].color;
+  return cern_copy_of_table_value(CernKnownColor_MediumBlue);
 }
 
-CernColor const *
+CernColor
 cern_color_medium_orchid(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_MediumOrchid].color;
+  return cern_copy_of_table_value(CernKnownColor_MediumOrchid);
 }
 
-CernColor const *
+CernColor
 cern_color_medium_purple(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_MediumPurple].color;
+  return cern_copy_of_table_value(CernKnownColor_MediumPurple);
 }
 
-CernColor const *
+CernColor
 cern_color_medium_sea_green(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_MediumSeaGreen].color;
+  return cern_copy_of_table_value(CernKnownColor_MediumSeaGreen);
 }
 
-CernColor const *
+CernColor
 cern_color_medium_slate_blue(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_MediumSlateBlue].color;
+  return cern_copy_of_table_value(CernKnownColor_MediumSlateBlue);
 }
 
-CernColor const *
+CernColor
 cern_color_medium_spring_green(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_MediumSpringGreen].color;
+  return cern_copy_of_table_value(CernKnownColor_MediumSpringGreen);
 }
 
-CernColor const *
+CernColor
 cern_color_medium_turquoise(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_MediumTurquoise].color;
+  return cern_copy_of_table_value(CernKnownColor_MediumTurquoise);
 }
 
-CernColor const *
+CernColor
 cern_color_medium_violet_red(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_MediumVioletRed].color;
+  return cern_copy_of_table_value(CernKnownColor_MediumVioletRed);
 }
 
-CernColor const *
+CernColor
 cern_color_midnight_blue(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_MidnightBlue].color;
+  return cern_copy_of_table_value(CernKnownColor_MidnightBlue);
 }
 
-CernColor const *
+CernColor
 cern_color_mint_cream(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_MintCream].color;
+  return cern_copy_of_table_value(CernKnownColor_MintCream);
 }
 
-CernColor const *
+CernColor
 cern_color_misty_rose(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_MistyRose].color;
+  return cern_copy_of_table_value(CernKnownColor_MistyRose);
 }
 
-CernColor const *
+CernColor
 cern_color_moccasin(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Moccasin].color;
+  return cern_copy_of_table_value(CernKnownColor_Moccasin);
 }
 
-CernColor const *
+CernColor
 cern_color_navajo_white(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_NavajoWhite].color;
+  return cern_copy_of_table_value(CernKnownColor_NavajoWhite);
 }
 
-CernColor const *
+CernColor
 cern_color_navy(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Navy].color;
+  return cern_copy_of_table_value(CernKnownColor_Navy);
 }
 
-CernColor const *
+CernColor
 cern_color_old_lace(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_OldLace].color;
+  return cern_copy_of_table_value(CernKnownColor_OldLace);
 }
 
-CernColor const *
+CernColor
 cern_color_olive(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Olive].color;
+  return cern_copy_of_table_value(CernKnownColor_Olive);
 }
 
-CernColor const *
+CernColor
 cern_color_olive_drab(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_OliveDrab].color;
+  return cern_copy_of_table_value(CernKnownColor_OliveDrab);
 }
 
-CernColor const *
+CernColor
 cern_color_orange(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Orange].color;
+  return cern_copy_of_table_value(CernKnownColor_Orange);
 }
 
-CernColor const *
+CernColor
 cern_color_orange_red(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_OrangeRed].color;
+  return cern_copy_of_table_value(CernKnownColor_OrangeRed);
 }
 
-CernColor const *
+CernColor
 cern_color_orchid(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Orchid].color;
+  return cern_copy_of_table_value(CernKnownColor_Orchid);
 }
 
-CernColor const *
+CernColor
 cern_color_pale_goldenrod(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_PaleGoldenrod].color;
+  return cern_copy_of_table_value(CernKnownColor_PaleGoldenrod);
 }
 
-CernColor const *
+CernColor
 cern_color_pale_green(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_PaleGreen].color;
+  return cern_copy_of_table_value(CernKnownColor_PaleGreen);
 }
 
-CernColor const *
+CernColor
 cern_color_pale_turquoise(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_PaleTurquoise].color;
+  return cern_copy_of_table_value(CernKnownColor_PaleTurquoise);
 }
 
-CernColor const *
+CernColor
 cern_color_pale_violet_red(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_PaleVioletRed].color;
+  return cern_copy_of_table_value(CernKnownColor_PaleVioletRed);
 }
 
-CernColor const *
+CernColor
 cern_color_papaya_whip(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_PapayaWhip].color;
+  return cern_copy_of_table_value(CernKnownColor_PapayaWhip);
 }
 
-CernColor const *
+CernColor
 cern_color_peach_puff(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_PapayaWhip].color;
+  return cern_copy_of_table_value(CernKnownColor_PeachPuff);
 }
 
-CernColor const *
+CernColor
 cern_color_peru(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Peru].color;
+  return cern_copy_of_table_value(CernKnownColor_Peru);
 }
 
-CernColor const *
+CernColor
 cern_color_pink(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Pink].color;
+  return cern_copy_of_table_value(CernKnownColor_Pink);
 }
 
-CernColor const *
+CernColor
 cern_color_plum(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Plum].color;
+  return cern_copy_of_table_value(CernKnownColor_Plum);
 }
 
-CernColor const *
+CernColor
 cern_color_powder_blue(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_PowderBlue].color;
+  return cern_copy_of_table_value(CernKnownColor_PowderBlue);
 }
 
-CernColor const *
+CernColor
 cern_color_purple(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Purple].color;
+  return cern_copy_of_table_value(CernKnownColor_Purple);
 }
 
-CernColor const *
+CernColor
 cern_color_red(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Red].color;
+  return cern_copy_of_table_value(CernKnownColor_Red);
 }
 
-CernColor const *
+CernColor
 cern_color_rosy_brown(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_RosyBrown].color;
+  return cern_copy_of_table_value(CernKnownColor_RosyBrown);
 }
 
-CernColor const *
+CernColor
 cern_color_royal_blue(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_RoyalBlue].color;
+  return cern_copy_of_table_value(CernKnownColor_RoyalBlue);
 }
 
-CernColor const *
+CernColor
 cern_color_saddle_brown(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_SaddleBrown].color;
+  return cern_copy_of_table_value(CernKnownColor_SaddleBrown);
 }
 
-CernColor const *
+CernColor
 cern_color_salmon(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Salmon].color;
+  return cern_copy_of_table_value(CernKnownColor_Salmon);
 }
 
-CernColor const *
+CernColor
 cern_color_sandy_brown(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_SandyBrown].color;
+  return cern_copy_of_table_value(CernKnownColor_SandyBrown);
 }
 
-CernColor const *
+CernColor
 cern_color_sea_green(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_SeaGreen].color;
+  return cern_copy_of_table_value(CernKnownColor_SeaGreen);
 }
 
-CernColor const *
+CernColor
 cern_color_sea_shell(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_SeaShell].color;
+  return cern_copy_of_table_value(CernKnownColor_SeaShell);
 }
 
-CernColor const *
+CernColor
 cern_color_sienna(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Sienna].color;
+  return cern_copy_of_table_value(CernKnownColor_Sienna);
 }
 
-CernColor const *
+CernColor
 cern_color_silver(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Silver].color;
+  return cern_copy_of_table_value(CernKnownColor_Silver);
 }
 
-CernColor const *
+CernColor
 cern_color_sky_blue(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_SkyBlue].color;
+  return cern_copy_of_table_value(CernKnownColor_SkyBlue);
 }
 
-CernColor const *
+CernColor
 cern_color_slate_blue(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_SlateBlue].color;
+  return cern_copy_of_table_value(CernKnownColor_SlateBlue);
 }
 
-CernColor const *
+CernColor
 cern_color_slate_gray(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_SlateGray].color;
+  return cern_copy_of_table_value(CernKnownColor_SlateGray);
 }
 
-CernColor const *
+CernColor
 cern_color_snow(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Snow].color;
+  return cern_copy_of_table_value(CernKnownColor_Snow);
 }
 
-CernColor const *
+CernColor
 cern_color_spring_green(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_SpringGreen].color;
+  return cern_copy_of_table_value(CernKnownColor_SpringGreen);
 }
 
-CernColor const *
+CernColor
 cern_color_steel_blue(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_SteelBlue].color;
+  return cern_copy_of_table_value(CernKnownColor_SteelBlue);
 }
 
-CernColor const *
+CernColor
 cern_color_tan(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_SaddleBrown].color;
+  return cern_copy_of_table_value(CernKnownColor_Tan);
 }
 
-CernColor const *
+CernColor
 cern_color_teal(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Teal].color;
+  return cern_copy_of_table_value(CernKnownColor_Teal);
 }
 
-CernColor const *
+CernColor
 cern_color_thistle(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Thistle].color;
+  return cern_copy_of_table_value(CernKnownColor_Thistle);
 }
 
-CernColor const *
+CernColor
 cern_color_tomato(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Tomato].color;
+  return cern_copy_of_table_value(CernKnownColor_Tomato);
 }
 
-CernColor const *
+CernColor
 cern_color_turquoise(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Turquoise].color;
+  return cern_copy_of_table_value(CernKnownColor_Turquoise);
 }
 
-CernColor const *
+CernColor
 cern_color_violet(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Violet].color;
+  return cern_copy_of_table_value(CernKnownColor_Violet);
 }
 
-CernColor const *
+CernColor
 cern_color_wheat(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Wheat].color;
+  return cern_copy_of_table_value(CernKnownColor_Wheat);
 }
 
-CernColor const *
+CernColor
 cern_color_white(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_White].color;
+  return cern_copy_of_table_value(CernKnownColor_White);
 }
 
-CernColor const *
+CernColor
 cern_color_white_smoke(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_WhiteSmoke].color;
+  return cern_copy_of_table_value(CernKnownColor_WhiteSmoke);
 }
 
-CernColor const *
+CernColor
 cern_color_yellow(void) {
-  cern_color_table_ensure_created();
-  return knwon_color_table[CernKnownColor_Yellow].color;
+  return cern_copy_of_table_value(CernKnownColor_Yellow);
 }
 
-CernColor const *
+CernColor
 cern_color_yellow_green(void) {
-  cern_color_table_ensure_created();
-
-  return knwon_color_table[CernKnownColor_YellowGreen].color;
+  return cern_copy_of_table_value(CernKnownColor_YellowGreen);
 }

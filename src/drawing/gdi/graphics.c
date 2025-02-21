@@ -6,6 +6,7 @@
 #include "cern/drawing/internal/device_context.h"
 #include "cern/drawing/image.h"
 #include "cern/drawing/2d/matrix.h"
+#include "cern/drawing/point_f.h"
 
 
 #include <Windows.h>
@@ -65,7 +66,7 @@ struct _CernGraphics {
 static
 void
 cern_graphics_device_context_interface_init(CernIDeviceContextInterface *iface) {
-  iface->get_hdc = (HDC(*)(CernIDeviceContext *)) cern_graphics_get_hdc;
+  iface->get_hdc = (gpointer(*)(CernIDeviceContext *)) cern_graphics_get_hdc;
   iface->release_hdc = (void(*)(CernIDeviceContext *)) cern_graphics_release_hdc;
 }
 
@@ -155,7 +156,7 @@ cern_graphics_push_context(CernGraphics *self, CernGraphicsContext *context) {
 
 static
 CernGraphics *
-cern_graphics_internal_from_handle(gpointer handle) {
+cern_graphics_from_handle(gpointer handle) {
   CernGraphics *self;
 
   self = g_object_new(CERN_TYPE_GRAPHICS, NULL);
@@ -170,7 +171,7 @@ cern_graphics_new_from_hdc(gpointer hdc) {
   GpGraphics *graphics;
 
   if (hdc == NULL) {
-    g_critical("Must pass in a valid DC");
+    g_critical("cern_graphics_new_from_hdc(...): Must pass in a valid DC");
     return NULL;
   }
 
@@ -181,7 +182,7 @@ cern_graphics_new_from_hdc(gpointer hdc) {
     return NULL;
   }
 
-  return cern_graphics_internal_from_handle(graphics);
+  return cern_graphics_from_handle(graphics);
 }
 
 CernGraphics *
@@ -201,7 +202,7 @@ cern_graphics_new_from_hdc_and_hdevice(gpointer h_dc, gpointer h_device) {
     return NULL;
   }
 
-  return cern_graphics_internal_from_handle(graphics);
+  return cern_graphics_from_handle(graphics);
 }
 
 CernGraphics *
@@ -216,7 +217,7 @@ cern_graphics_new_from_hwnd(gpointer h_wnd) {
     return NULL;
   }
 
-  return cern_graphics_internal_from_handle(graphics);
+  return cern_graphics_from_handle(graphics);
 }
 
 CernGraphics *
@@ -239,7 +240,7 @@ cern_graphics_new_from_image(CernImage *image) {
     return NULL;
   }
 
-  return cern_graphics_internal_from_handle(graphics);
+  return cern_graphics_from_handle(graphics);
 }
 
 /* functions */
@@ -530,7 +531,24 @@ cern_graphics_set_interpolation_mode(CernGraphics *self, CernInterpolationMode m
 }
 
 CernMatrix *
-cern_graphics_get_transform(CernGraphics *self);
+cern_graphics_get_transform(CernGraphics *self) {
+  GpStatus status;
+  CernMatrix *matrix;
+  gpointer native_matrix;
+
+  extern
+  CernMatrix *
+  cern_matrix_from_native(gpointer handle);
+
+  status = GdipGetWorldTransform(self->handle, &native_matrix);
+
+  if (status != Ok) {
+    g_warning("cern_graphics_get_transform(...): GdipGetWorldTransform() failed: %d", status);
+    return NULL;
+  }
+
+  return cern_matrix_from_native(native_matrix);
+}
 
 void
 cern_graphics_set_transform(CernGraphics *self, CernMatrix *matrix);
@@ -3290,13 +3308,69 @@ cern_graphics_translate_clip_i(CernGraphics *self, gint32 dx, gint32 dy) {
   }
 }
 
-
+// FIXME: Need to implement some functions.
 GObject *
 cern_graphics_get_context_info(CernGraphics *self) {
-  g_critical("cern_graphics_get_context_info() is not implemented");
-  return NULL;
-}
+  CernRegion *cumul_clip;
+  CernMatrix *cumul_transform;
+  CernPointF current_offset, total_offset;
+  CernGraphicsContext *context;
+  GObject *result;
 
+  cumul_clip = cern_graphics_get_clip(self);
+  cumul_transform = cern_graphics_get_transform(self);
+  current_offset = cern_point_f_create(0, 0);
+  total_offset = cern_point_f_create(0, 0);
+
+  if (!cern_matrix_is_identity(cumul_transform)) {
+    gfloat elements [6] = { 0 };
+    gsize count = 6;
+    cern_matrix_get_elements(cumul_transform, elements, &count);
+    cern_point_f_set_x(&current_offset, elements[4]);
+    cern_point_f_set_y(&current_offset, elements[5]);
+  }
+
+  context = self->previous_context;
+  while (context != NULL) {
+    CernPointF transform_offset
+      = cern_graphics_context_get_transform_offset(context);
+    if (!cern_point_f_is_empty(&transform_offset)) {
+      cern_matrix_translate(cumul_transform, cern_point_f_get_x(&transform_offset), cern_point_f_get_y(&transform_offset));
+    }
+
+    if (!cern_point_f_is_empty(&current_offset)) {
+      cern_region_translate(cumul_clip, cern_point_f_get_x(&current_offset), cern_point_f_get_y(&current_offset));
+      cern_point_f_set_x(&total_offset, cern_point_f_get_x(&total_offset) + cern_point_f_get_x(&current_offset));
+      cern_point_f_set_y(&total_offset, cern_point_f_get_y(&total_offset) + cern_point_f_get_y(&current_offset));
+    }
+
+    CernRegion *context_clip = cern_graphics_context_get_clip(context);
+    if (context_clip != NULL) {
+      cern_region_intersect(cumul_clip, context_clip);
+    }
+
+    current_offset = cern_graphics_context_get_transform_offset(context);
+
+    do {
+      context = cern_graphics_context_get_previous(context);
+      if (context == NULL
+          || !cern_graphics_context_get_is_cumulative(cern_graphics_context_get_next(context))) {
+        break;
+      }
+    } while (cern_graphics_context_get_is_cumulative(context));
+  }
+
+  if (!cern_point_f_is_empty(&total_offset)) {
+    cern_region_translate(cumul_clip, -cern_point_f_get_x(&total_offset), -cern_point_f_get_y(&total_offset));
+  }
+
+  result = g_object_new(G_TYPE_OBJECT, NULL);
+
+  g_object_set_data(result, "clip", cumul_clip);
+  g_object_set_data(result, "transform", cumul_transform);
+
+  return result;
+}
 
 CernRegion *
 cern_graphics_get_clip(CernGraphics *self) {
@@ -3319,7 +3393,6 @@ cern_graphics_get_clip(CernGraphics *self) {
 
   return result;
 }
-
 
 void
 cern_graphics_set_clip(CernGraphics *self, CernRegion *region) {

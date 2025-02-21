@@ -2,7 +2,6 @@
 #define I_DEVICE_CONTEXT
 
 #include <glib-object.h>
-#include <Windows.h>
 
 G_BEGIN_DECLS
 
@@ -12,13 +11,13 @@ G_DECLARE_INTERFACE(CernIDeviceContext, cern_i_device_context, CERN, IDEVICE_CON
 struct _CernIDeviceContextInterface {
     GTypeInterface parent_iface;
 
-    HDC
+    gpointer
     (*get_hdc)(CernIDeviceContext *self);
     void
     (*release_hdc)(CernIDeviceContext *self);
 };
 
-HDC
+gpointer
 cern_i_device_context_get_hdc(CernIDeviceContext *self);
 
 void

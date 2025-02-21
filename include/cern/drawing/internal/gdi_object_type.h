@@ -1,7 +1,7 @@
 #ifndef CERN_GDI_OBJECT_TYPE_H
 #define CERN_GDI_OBJECT_TYPE_H 1
 
-enum CernGdiObjectType {
+typedef enum _CernGdiObjectType {
   CernGdiObjectType_Pen                 = 1,
   CernGdiObjectType_Brush               = 2,
   CernGdiObjectType_DisplayDC           = 3,
@@ -28,6 +28,6 @@ enum CernGdiObjectType {
   OBJ_MEMDC     = 10,
   OBJ_ENHMETADC = 12,
   */
-};
+} CernGdiObjectType;
 
 #endif /* CERN_GDI_OBJECT_TYPE_H */

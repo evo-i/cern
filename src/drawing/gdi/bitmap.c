@@ -201,12 +201,36 @@ cern_bitmap_new_from_h_icon(gpointer h_icon) {
 }
 
 CernBitmap *
+cern_bitmap_new_from_h_bitmap(gpointer h_bitmap) {
+  return cern_bitmap_new_from_h_bitmap_with_palette(h_bitmap, NULL);
+}
+
+CernBitmap *
+cern_bitmap_new_from_h_bitmap_with_palette(gpointer h_bitmap, gpointer h_palette) {
+  CernBitmap *self;
+  GpStatus status;
+  gpointer bitmap;
+
+  status = GdipCreateBitmapFromHBITMAP(h_bitmap, h_palette, &bitmap);
+
+  if (status != Ok) {
+    g_critical("%s: GdipCreateBitmapFromHBITMAP failed\n", __func__);
+    return NULL;
+  }
+
+  self = g_object_new(CERN_TYPE_BITMAP, NULL);
+  cern_bitmap_set_native(self, bitmap);
+  return self;
+}
+
+/* TODO: Somewhere is it needed? */
+CernBitmap *
 cern_bitmap_new_from_data(const char *data, int width, int height);
 
 gpointer
 cern_bitmap_get_h_bitmap(CernBitmap *self) {
-  CernColor *bg = (CernColor *) cern_color_light_gray();
-  return cern_bitmap_get_h_bitmap_with_background(self, bg);
+  CernColor bg = cern_color_light_gray();
+  return cern_bitmap_get_h_bitmap_with_background(self, &bg);
 }
 
 gpointer
@@ -247,22 +271,24 @@ cern_bitmap_get_h_icon(CernBitmap *self) {
   return h_icon;
 }
 
-CernColor *
+CernColor
 cern_bitmap_get_pixel(CernBitmap *self, int x, int y) {
-  CernColor *color;
+  CernColor color;
   GpStatus status;
   GpBitmap *bitmap;
   guint32 argb = 0;
   ARGB gb = 0;
 
+  color = cern_color_empty();
+
   if (x < 0 || x >= cern_image_get_width(CERN_IMAGE(self))) {
     g_warning("%s: x is out of range\n", __func__);
-    return NULL;
+    return color;
   }
 
   if (y < 0 || y >= cern_image_get_height(CERN_IMAGE(self))) {
     g_warning("%s: y is out of range\n", __func__);
-    return NULL;
+    return color;
   }
 
   bitmap = cern_bitmap_get_native(self);
@@ -271,7 +297,7 @@ cern_bitmap_get_pixel(CernBitmap *self, int x, int y) {
 
   if (status != Ok) {
     g_warning("%s: GdipBitmapGetPixel failed\n", __func__);
-    return NULL;
+    return color;
   }
 
   color = cern_color_from_argb(argb);

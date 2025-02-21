@@ -19,7 +19,7 @@ cern_solid_brush_new(CernColor *color);
 CernBrush *
 cern_solid_brush_new_immutable(CernColor *color, gboolean is_immutable);
 
-CernColor *
+CernColor
 cern_solid_brush_get_color(CernSolidBrush *self);
 
 void

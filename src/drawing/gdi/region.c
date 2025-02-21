@@ -306,6 +306,44 @@ cern_region_complement_with_rectangle_f(CernRegion *region, CernRectangleF *rect
   }
 }
 
+void
+cern_region_translate(CernRegion *self, gint32 dx, gint32 dy) {
+  GpStatus status;
+
+  status = GdipTranslateRegionI(self->handle, dx, dy);
+
+  if (status != Ok) {
+    g_warning("%s(...) failed: GdipTranslateRegionI(): %d", __func__, status);
+  }
+}
+
+void
+cern_region_translate_f(CernRegion *self, gfloat dx, gfloat dy) {
+  GpStatus status;
+
+  status = GdipTranslateRegion(self->handle, dx, dy);
+
+  if (status != Ok) {
+    g_warning("%s(...) failed: GdipTranslateRegionI(): %d", __func__, status);
+  }
+}
+
+void
+cern_region_transform(CernRegion *self, CernMatrix *matrix) {
+  GpStatus status;
+  gpointer matrix_handle;
+  CernNativeGdiObject *matrix_object;
+
+  matrix_object = CERN_NATIVE_GDI_OBJECT(matrix);
+  matrix_handle = cern_native_gdi_object_get_native_handle(matrix_object);
+
+  status = GdipTransformRegion(self->handle, matrix_handle);
+
+  if (status != Ok) {
+    g_warning("%s(...) failed: GdipTransformRegion(): %d", __func__, status);
+  }
+}
+
 /* exclude */
 void
 cern_region_exclude(CernRegion *self, CernRegion *region) {
@@ -409,11 +447,17 @@ cern_region_get_bounds_f(CernRegion *self, CernGraphics *graphics) {
 }
 
 gpointer
-cern_region_get_h_region(CernRegion *self) {
+cern_region_get_h_region(CernRegion *self, CernGraphics *graphics) {
   GpStatus status;
   HRGN h_region;
+  gpointer graphics_handle;
 
-  status = GdipGetRegionHRgn(self, &h_region, &h_region);
+  CernNativeGdiObject *native_graphics;
+
+  native_graphics = CERN_NATIVE_GDI_OBJECT(graphics);
+  graphics_handle = cern_native_gdi_object_get_native_handle(native_graphics);
+
+  status = GdipGetRegionHRgn(self, graphics_handle, &h_region);
 
   if (status != Ok) {
     g_critical("cern_region_get_h_region(): GdipGetRegionHRgn() failed");

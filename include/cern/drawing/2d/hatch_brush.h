@@ -28,10 +28,10 @@ cern_hatch_brush_clone(CernHatchBrush *self);
 CernHatchStyle
 cern_hatch_brush_get_style(CernHatchBrush *self);
 
-CernColor *
+CernColor
 cern_hatch_brush_get_foreground_color(CernHatchBrush *self);
 
-CernColor *
+CernColor
 cern_hatch_brush_get_background_color(CernHatchBrush *self);
 
 G_END_DECLS
