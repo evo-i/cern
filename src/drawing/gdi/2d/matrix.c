@@ -28,9 +28,9 @@ cern_matrix_set_mative(CernMatrix* self, gpointer handle) {
 
 static
 void
-cern_matrix_cloneable_iface_init(CernICLoneableInterface *iface) {
+cern_matrix_cloneable_iface_init(CernICloneableInterface *iface) {
   iface->clone
-    = (CernICLoneable *(*)(CernICLoneable *)) cern_matrix_clone;
+    = (CernICloneable *(*)(CernICloneable *)) cern_matrix_clone;
 }
 
 static

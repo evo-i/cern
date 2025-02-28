@@ -26,8 +26,8 @@ cern_pen_new_from_native_handle(gpointer handle) {
   return self;
 }
 
-CernICLoneable  *
-cern_pen_clone(CernICLoneable  *cloneable) {
+CernICloneable  *
+cern_pen_clone(CernICloneable  *cloneable) {
   CernPen *self = CERN_PEN(cloneable);
   GpPen *pen;
   GpStatus status;
@@ -43,7 +43,7 @@ cern_pen_clone(CernICLoneable  *cloneable) {
 
 static
 void
-cern_pen_cloneable_iface(CernICLoneableInterface *iface) {
+cern_pen_cloneable_iface(CernICloneableInterface *iface) {
   iface->clone = cern_pen_clone;
 }
 

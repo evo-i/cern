@@ -94,9 +94,9 @@ struct _CernIcon {
 
 static
 void
-cern_icon_cloneable_iface(CernICLoneableInterface *iface) {
+cern_icon_cloneable_iface(CernICloneableInterface *iface) {
   iface->clone
-    = (CernICLoneable *(*)(CernICLoneable *)) cern_icon_clone;
+    = (CernICloneable *(*)(CernICloneable *)) cern_icon_clone;
 }
 
 G_DEFINE_FINAL_TYPE_WITH_CODE(CernIcon, cern_icon, G_TYPE_OBJECT,

@@ -67,6 +67,44 @@ cern_font_family_init(CernFontFamily *self) {
 }
 
 CernFontFamily *
+cern_font_family_new_internal_2(gchar const *name,
+                                gboolean create_default_on_fail) {
+  CernFontFamily *self;
+  GpStatus status;
+  gpointer handle = NULL;
+  wchar_t *wname;
+
+  self = g_object_new(CERN_TYPE_FONT_FAMILY, NULL);
+  self->create_default_on_fail = create_default_on_fail;
+
+  if (name != NULL) {
+    wname = (wchar_t *)g_utf8_to_utf16(name, -1, NULL, NULL, NULL);
+    status = GdipCreateFontFamilyFromName(wname, NULL, &handle);
+    g_free(wname);
+
+    if (status != Ok) {
+      if (create_default_on_fail) {
+        status = GdipGetGenericFontFamilySansSerif(&handle);
+        if (status != Ok) {
+          g_object_unref(self);
+          return NULL;
+        }
+      } else {
+        if (status == FontFamilyNotFound) {
+          g_warning("Font family '%s' not found", name);
+        } else if (status == NotTrueTypeFont) {
+          g_warning("'%s' is not a TrueType font", name);
+        }
+        g_object_unref(self);
+        return NULL;
+      }
+    }
+  }
+
+  self->handle = handle;
+  return self;
+}
+CernFontFamily *
 cern_font_family_new(gchar const *name) {
   return
     cern_font_family_new_with_collection(name, NULL);
@@ -217,6 +255,19 @@ cern_font_family_get_line_spacing(CernFontFamily *self, CernFontStyle style) {
   }
 
   return result;
+}
+
+gboolean
+cern_font_family_is_equals(CernFontFamily *self, CernFontFamily *other) {
+  if (self == NULL || other == NULL) {
+    return FALSE;
+  }
+
+  if (self == other) {
+    return TRUE;
+  }
+
+  return self->handle == other->handle;
 }
 
 void

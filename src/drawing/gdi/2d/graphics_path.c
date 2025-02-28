@@ -13,9 +13,9 @@ struct _CernGraphicsPath {
 
 static
 void
-cern_graphics_path_cloneable_iface(CernICLoneableInterface *iface) {
+cern_graphics_path_cloneable_iface(CernICloneableInterface *iface) {
   iface->clone
-    = (CernICLoneable *(*)(CernICLoneable *)) cern_graphics_path_clone;
+    = (CernICloneable *(*)(CernICloneable *)) cern_graphics_path_clone;
 }
 
 gpointer

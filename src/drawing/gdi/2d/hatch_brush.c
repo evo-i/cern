@@ -26,13 +26,13 @@ cern_hatch_brush_set_native(CernHatchBrush *self, gpointer handle) {
 }
 
 static
-CernICLoneable *
-cern_hatch_clone(CernICLoneable *self);
+CernICloneable *
+cern_hatch_clone(CernICloneable *self);
 
 static
 void
-cern_hatch_brush_clone_interface_init(CernICLoneableInterface *iface) {
-  iface->clone = (CernICLoneable *(*)(CernICLoneable *)) cern_hatch_brush_clone;
+cern_hatch_brush_clone_interface_init(CernICloneableInterface *iface) {
+  iface->clone = (CernICloneable *(*)(CernICloneable *)) cern_hatch_brush_clone;
 }
 
 G_DEFINE_TYPE_WITH_CODE(CernHatchBrush, cern_hatch_brush, CERN_TYPE_BRUSH,
@@ -88,8 +88,8 @@ cern_hatch_brush_new_with_color(CernHatchStyle style,
 
 CernBrush *
 cern_hatch_brush_clone(CernHatchBrush *self) {
-  CernICLoneable *cloneable;
-  CernICLoneableInterface *iface;
+  CernICloneable *cloneable;
+  CernICloneableInterface *iface;
   cloneable = CERN_ICLONEABLE(self);
   iface = CERN_ICLONEABLE_GET_IFACE(cloneable);
   return CERN_BRUSH(iface->clone(cloneable));
@@ -141,8 +141,8 @@ cern_hatch_brush_get_background_color(CernHatchBrush *self) {
 }
 
 static
-CernICLoneable *
-cern_hatch_clone(CernICLoneable *self) {
+CernICloneable *
+cern_hatch_clone(CernICloneable *self) {
   GpStatus status;
   gpointer native;
   CernHatchBrush *brush;

@@ -3,45 +3,36 @@
 
 #include "quality_mode.h"
 
-/// <include file='doc\PixelOffsetMode.uex' path='docs/doc[@for="PixelOffsetMode"]/*' />
-/// <devdoc>
-///    Specifies how pixels are offset during
-///    rendering.
-/// </devdoc>
+/**
+ * @enum _CernPixelOffsetMode
+ *
+ * @brief Specifies how pixels are offset during rendering.
+ */
 typedef enum _CernPixelOffsetMode {
-  /// <include file='doc\PixelOffsetMode.uex' path='docs/doc[@for="PixelOffsetMode.Invalid"]/*' />
-  /// <devdoc>
-  ///    Specifies an invalid mode.
-  /// </devdoc>
+  /**
+   * @brief Specifies an invalid mode.
+   */
   CernPixelOffsetMode_Invalid = CernQualityMode_Invalid,
-  /// <include file='doc\PixelOffsetMode.uex' path='docs/doc[@for="PixelOffsetMode.Default"]/*' />
-  /// <devdoc>
-  ///    Specifies the default mode.
-  /// </devdoc>
+  /**
+   * @brief Specifies the default mode.
+   */
   CernPixelOffsetMode_Default = CernQualityMode_Default,
-  /// <include file='doc\PixelOffsetMode.uex' path='docs/doc[@for="PixelOffsetMode.HighSpeed"]/*' />
-  /// <devdoc>
-  ///    Specifies high low quality (high
-  ///    performance) mode.
-  /// </devdoc>
+  /**
+   * @brief Specifies high low quality (high performance) mode.
+   */
   CernPixelOffsetMode_HighSpeed = CernQualityMode_Low,
-  /// <include file='doc\PixelOffsetMode.uex' path='docs/doc[@for="PixelOffsetMode.HighQuality"]/*' />
-  /// <devdoc>
-  ///    Specifies high quality (lower performance)
-  ///    mode.
-  /// </devdoc>
+  /**
+   * @brief Specifies high quality (lower performance) mode.
+   */
   CernPixelOffsetMode_HighQuality = CernQualityMode_High,
-  /// <include file='doc\PixelOffsetMode.uex' path='docs/doc[@for="PixelOffsetMode.None"]/*' />
-  /// <devdoc>
-  ///    Specifies no pixel offset.
-  /// </devdoc>
-  CernPixelOffsetMode_None,                   // no pixel offset
-  /// <include file='doc\PixelOffsetMode.uex' path='docs/doc[@for="PixelOffsetMode.Half"]/*' />
-  /// <devdoc>
-  ///    Specifies that pixels are offset by -.5
-  ///    units both horizontally and vertically for high performance anti-aliasing.
-  /// </devdoc>
-  CernPixelOffsetMode_Half                    // offset by -0.5, -0.5 for fast anti-alias perf
+  /**
+   * @brief Specifies no pixel offset.
+   */
+  CernPixelOffsetMode_None,
+  /**
+   * @brief Specifies that pixels are offset by -.5 units both horizontally and vertically for high performance anti-aliasing.
+   */
+  CernPixelOffsetMode_Half
 } CernPixelOffsetMode;
 
 #endif /* CERN_DRAWING_2D_PIXEL_OFFSET_MODE_H */

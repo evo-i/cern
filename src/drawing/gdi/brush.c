@@ -25,8 +25,8 @@ cern_brush_set_native(CernBrush *self, gpointer brush);
 
 
 static
-CernICLoneable *
-cern_brush_real_clone(CernICLoneable *iface) {
+CernICloneable *
+cern_brush_real_clone(CernICloneable *iface) {
   CernBrush *clone, *self;
   CernBrushPrivate *clone_priv;
   CernBrushPrivate *priv;
@@ -57,7 +57,7 @@ cern_brush_real_clone(CernICLoneable *iface) {
 
 static
 void
-cern_brush_cloneable_init(CernICLoneableInterface *iface) {
+cern_brush_cloneable_init(CernICloneableInterface *iface) {
   iface->clone = cern_brush_real_clone;
 }
 

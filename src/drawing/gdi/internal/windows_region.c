@@ -60,8 +60,8 @@ cern_windows_region_clone(CernWindowsRegion *self) {
 
 static
 void
-cern_windows_region_cloneable_interface_init(CernICLoneableInterface *iface) {
-  iface->clone = (CernICLoneable* (*)(CernICLoneable*)) cern_windows_region_clone;
+cern_windows_region_cloneable_interface_init(CernICloneableInterface *iface) {
+  iface->clone = (CernICloneable* (*)(CernICloneable*)) cern_windows_region_clone;
 }
 
 G_DEFINE_FINAL_TYPE_WITH_CODE(CernWindowsRegion,

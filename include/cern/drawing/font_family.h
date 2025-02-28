@@ -55,6 +55,9 @@ cern_font_family_get_cell_descent(CernFontFamily *self, CernFontStyle style);
 gint32
 cern_font_family_get_line_spacing(CernFontFamily *self, CernFontStyle style);
 
+gboolean
+cern_font_family_is_equals(CernFontFamily *self, CernFontFamily *other);
+
 void
 cern_font_family_unref(CernFontFamily *self);
 
