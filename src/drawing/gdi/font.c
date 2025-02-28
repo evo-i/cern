@@ -29,13 +29,28 @@ cern_font_family_new_internal_2(gchar const*, gboolean);
 static
 void
 cern_font_iface_init_icloneable(CernICloneableInterface *iface) {
+  iface->clone = (CernICloneable *(*)(CernICloneable *)) cern_font_clone;
+}
 
+static
+gpointer
+cern_font_get(gpointer handle) {
+  CernFont *self = CERN_FONT(handle);
+  return self->handle;
+}
+
+static
+void
+cern_font_set(gpointer handle, gpointer value) {
+  CernFont *self = CERN_FONT(handle);
+  self->handle = value;
 }
 
 static
 void
 cern_font_iface_init_handle(CernHandleInterface *iface) {
-
+  iface->get = cern_font_get;
+  iface->set = cern_font_set;
 }
 
 G_DEFINE_FINAL_TYPE_WITH_CODE(CernFont, cern_font, G_TYPE_OBJECT,
@@ -50,8 +65,43 @@ cern_font_init(CernFont *self) {
 
 static
 void
-cern_font_class_init(CernFontClass *klass) {
+cern_font_dispose(GObject *object) {
+  CernFont *self = CERN_FONT(object);
 
+  if (self->family != NULL) {
+    g_clear_object(&self->family);
+  }
+
+  G_OBJECT_CLASS(cern_font_parent_class)->dispose(object);
+}
+
+static
+void
+cern_font_finalize(GObject *object) {
+  CernFont *self = CERN_FONT(object);
+
+  if (self->handle != NULL) {
+    GdipDeleteFont(self->handle);
+  }
+
+  if (self->system_font_name != NULL) {
+    g_free(self->system_font_name);
+  }
+
+  if (self->original_name != NULL) {
+    g_free(self->original_name);
+  }
+
+  G_OBJECT_CLASS(cern_font_parent_class)->finalize(object);
+}
+
+static
+void
+cern_font_class_init(CernFontClass *klass) {
+  GObjectClass *object_class = G_OBJECT_CLASS(klass);
+
+  object_class->dispose = cern_font_dispose;
+  object_class->finalize = cern_font_finalize;
 }
 
 static
@@ -719,7 +769,7 @@ cern_font_is_equals(CernFont *self, CernFont *other) {
 }
 
 CernFont *
-cenr_font_clone(CernFont *self) {
+cern_font_clone(CernFont *self) {
   GpStatus status;
   CernFont *clone;
   gpointer clone_handle;

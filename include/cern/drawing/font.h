@@ -123,7 +123,7 @@ gboolean
 cern_font_is_equals(CernFont *self, CernFont *other);
 
 CernFont *
-cenr_font_clone(CernFont *self);
+cern_font_clone(CernFont *self);
 
 CernFont *
 cern_font_ref(CernFont *self);
