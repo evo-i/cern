@@ -33,6 +33,11 @@ cern_rectangle_create_with_point_and_size(CernPoint *point, CernSize *size) {
   };
 }
 
+CernRectangle
+cern_rectangle_empty(void) {
+  return (CernRectangle) { 0 };
+}
+
 gint32
 cern_rectangle_get_x(CernRectangle *self) {
   return self->x;

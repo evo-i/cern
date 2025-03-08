@@ -36,11 +36,8 @@ GdiplusStartupOutput init_output = {
 
 gboolean
 cern_drawing_init(void) {
-   GdiplusStartup(&gdiplus_token, &init_input, &init_output) == Ok;
-
-  GpGraphics *gfx;
-
-  return TRUE;
+  return
+    GdiplusStartup(&gdiplus_token, &init_input, &init_output) == Ok;
 }
 
 void

@@ -192,6 +192,10 @@ cern_device_context_dispose(GObject *object) {
       DeleteDC((HDC) self->h_dc);
       self->h_dc = NULL;
     } break;
+    case CernDeviceContextType_NCWindow:
+    case CernDeviceContextType_Metafile:
+    case CernDeviceContextType_Unknown:
+    break;
   }
 
   parent_class->dispose(object);
@@ -223,7 +227,7 @@ cern_device_context_new_dc(gchar const *driver_name, gchar const *device_name,
   h_dc = CreateDCA(driver_name, device_name, file_name, dev_mode);
 
   if (h_dc == NULL) {
-    g_critical("%s(...): failed: CreateDCA: %d", __func__, GetLastError());
+    g_critical("%s(...): failed: CreateDCA: %lu", __func__, GetLastError());
     return NULL;
   }
 
@@ -238,7 +242,7 @@ cern_device_context_new_ic(gchar const *driver_name, gchar const *device_name,
   h_dc = CreateICA(driver_name, device_name, file_name, dev_mode);
 
   if (h_dc == NULL) {
-    g_critical("%s(...): failed: CreateICA: %d", __func__, GetLastError());
+    g_critical("%s(...): failed: CreateICA: %lu", __func__, GetLastError());
     return NULL;
   }
 

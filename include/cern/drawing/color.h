@@ -4,9 +4,6 @@
 #include <glib-object.h>
 #include "known_color.h"
 
-
-/* FIXME: Needs to be refactored to used by value... */
-
 G_BEGIN_DECLS
 
 #define CERN_TYPE_COLOR (cern_color_get_type())

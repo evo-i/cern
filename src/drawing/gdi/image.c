@@ -10,7 +10,7 @@
 #include <wchar.h>
 
 struct _CernImagePrivate {
-  GpImage *image;
+  gpointer image;
 } typedef CernImagePrivate;
 
 static
@@ -22,12 +22,45 @@ gpointer
 cern_image_get_native(CernImage *self);
 
 static
+inline
+gpointer
+cern_image_get_instance_private(CernImage *self);
+
+/* TODO: CernNativeGdiObject will be replaced with CernHandle... */
+
+static
 void
 cern_image_native_gdi_object_interface_init(CernNativeGdiObjectInterface *iface) {
   iface->get_native_handle
     = (gpointer(*)(CernNativeGdiObject *)) cern_image_get_native;
   iface->set_native_handle
     = (void(*)(CernNativeGdiObject *, gpointer)) cern_image_set_native;
+}
+
+static
+gpointer
+cern_image_get_(gpointer handle) {
+  CernImagePrivate *priv;
+
+  if (!CERN_IS_IMAGE(handle)) {
+    return NULL;
+  }
+  priv = cern_image_get_instance_private(CERN_IMAGE(handle));
+
+  return priv->image;
+}
+
+static
+void
+cern_image_set_(gpointer handle, gpointer value) {
+  CernImagePrivate *priv;
+
+  if (!CERN_IS_IMAGE(handle)) {
+    return;
+  }
+
+  priv = cern_image_get_instance_private(CERN_IMAGE(handle));
+  priv->image = value;
 }
 
 G_DEFINE_TYPE_WITH_CODE(CernImage,

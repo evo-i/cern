@@ -2,6 +2,7 @@
 #include "cern/core/icloneable.h"
 #include "cern/drawing/rectangle.h"
 #include "cern/drawing/internal/native_gdi_object.h"
+#include "cern/core/windows/handle.h"
 
 #include <unknwn.h>
 
@@ -99,8 +100,36 @@ cern_icon_cloneable_iface(CernICloneableInterface *iface) {
     = (CernICloneable *(*)(CernICloneable *)) cern_icon_clone;
 }
 
+static
+gpointer
+cern_icon_get(gpointer handle) {
+  if (!CERN_IS_ICON(handle)) {
+    return NULL;
+  }
+
+  return CERN_ICON(handle)->handle;
+}
+
+static
+void
+cern_icon_set(gpointer handle, gpointer value) {
+  if (!CERN_IS_ICON(handle)) {
+    return;
+  }
+
+  CERN_ICON(handle)->handle = value;
+};
+
+static
+void
+cern_icon_handle_iface(CernHandleInterface *iface) {
+  iface->get = cern_icon_get;
+  iface->set = cern_icon_set;
+}
+
 G_DEFINE_FINAL_TYPE_WITH_CODE(CernIcon, cern_icon, G_TYPE_OBJECT,
-  G_IMPLEMENT_INTERFACE(CERN_TYPE_ICLONEABLE, cern_icon_cloneable_iface))
+  G_IMPLEMENT_INTERFACE(CERN_TYPE_ICLONEABLE, cern_icon_cloneable_iface)
+  G_IMPLEMENT_INTERFACE(CERN_TYPE_HANDLE, cern_icon_handle_iface))
 
 static
 void

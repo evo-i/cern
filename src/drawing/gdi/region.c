@@ -165,10 +165,15 @@ void
 cern_region_intersect(CernRegion *self, CernRegion *region) {
   GpStatus status;
 
-  status
-    = GdipCombineRegionRegion(cern_region_get_native(self),
-                              cern_region_get_native(region),
-                              CernCombineMode_Intersect);
+  gpointer self_handle;
+  gpointer region_handle;
+
+  CombineMode mode = (CombineMode) CernCombineMode_Intersect;
+
+  self_handle = cern_region_get_native(self);
+  region_handle = cern_region_get_native(region);
+
+  status = GdipCombineRegionRegion(self_handle, region_handle, mode);
 
   if (status!= Ok) {
     g_critical("cern_region_intersect(): GdipCombineRegionRegion() failed");
@@ -180,13 +185,14 @@ cern_region_intersect_with_graphics_path(CernRegion *region,
                                          CernGraphicsPath *path) {
   GpStatus status;
   CernNativeGdiObject *native_path;
+  CombineMode mode = (CombineMode) CernCombineMode_Intersect;
 
   native_path = CERN_NATIVE_GDI_OBJECT(path);
 
   status
     = GdipCombineRegionPath(cern_region_get_native(region),
                             cern_native_gdi_object_get_native_handle(native_path),
-                            CernCombineMode_Intersect);
+                            mode);
 
   if (status != Ok) {
     g_critical("cern_region_intersect_with_graphics_path(): GdipCombineRegionPath() failed");
@@ -197,6 +203,7 @@ void
 cern_region_intersect_with_rectangle(CernRegion *region, CernRectangle *rect) {
   GpRect gp_rect;
   GpStatus status;
+  CombineMode mode = (CombineMode) CernCombineMode_Intersect;
 
   gp_rect.X = cern_rectangle_get_x(rect);
   gp_rect.Y = cern_rectangle_get_y(rect);
@@ -204,8 +211,8 @@ cern_region_intersect_with_rectangle(CernRegion *region, CernRectangle *rect) {
   gp_rect.Height = cern_rectangle_get_height(rect);
 
   status
-    = GdipCombineRegionRectI(cern_region_get_native(region), &gp_rect,
-                             CernCombineMode_Intersect);
+    = GdipCombineRegionRectI(cern_region_get_native(region),
+                             &gp_rect, mode);
 
   if (status != Ok) {
     g_critical("cern_region_intersect_with_rectangle(): GdipCombineRegionRect() failed");
@@ -216,6 +223,7 @@ void
 cern_region_intersect_with_rectangle_f(CernRegion *region, CernRectangleF *rect) {
   GpRectF gp_rect;
   GpStatus status;
+  CombineMode mode = (CombineMode) CernCombineMode_Intersect;
 
   gp_rect.X = cern_rectangle_f_get_x(rect);
   gp_rect.Y = cern_rectangle_f_get_y(rect);
@@ -224,7 +232,7 @@ cern_region_intersect_with_rectangle_f(CernRegion *region, CernRectangleF *rect)
 
   status
     = GdipCombineRegionRect(&gp_rect, cern_region_get_native(region),
-                            CernCombineMode_Intersect);
+                            mode);
 
   if (status != Ok) {
     g_critical("cern_region_intersect_with_rectangle_f(): GdipCombineRegionRectF() failed");
@@ -235,6 +243,7 @@ cern_region_intersect_with_rectangle_f(CernRegion *region, CernRectangleF *rect)
 void
 cern_region_complement(CernRegion *self, CernRegion *region) {
   GpStatus status;
+  CombineMode mode = (CombineMode) CernCombineMode_Complement;
 
   if (region == NULL) {
     g_critical("cern_region_complement(): passed NULL region");
@@ -244,7 +253,7 @@ cern_region_complement(CernRegion *self, CernRegion *region) {
   status
     = GdipCombineRegionRegion(cern_region_get_native(self),
                               cern_region_get_native(region),
-                              CernCombineMode_Complement);
+                              mode);
 
   if (status != Ok) {
     g_critical("cern_region_complement(): GdipCombineRegionRegion() failed");
@@ -256,12 +265,21 @@ cern_region_complement_with_graphics_path(CernRegion *region,
                                           CernGraphicsPath *path) {
   GpStatus status;
   CernNativeGdiObject *native_path;
+  CernNativeGdiObject *native_region;
+
+  gpointer native_path_handle;
+  gpointer native_region_handle;
+
+  CombineMode mode = (CombineMode) CernCombineMode_Complement;
 
   native_path = CERN_NATIVE_GDI_OBJECT(path);
+  native_region = CERN_NATIVE_GDI_OBJECT(region);
+
+  native_path_handle = cern_native_gdi_object_get_native_handle(native_path);
+  native_region_handle = cern_native_gdi_object_get_native_handle(native_region);
+
   status
-    = GdipCombineRegionPath(cern_region_get_native(region),
-                            cern_native_gdi_object_get_native_handle(native_path),
-                            CernCombineMode_Complement);
+    = GdipCombineRegionPath(native_region_handle, native_path_handle, mode);
 
   if (status != Ok) {
     g_critical("cern_region_complement_with_graphics_path(): GdipCombineRegionPath() failed");
@@ -273,14 +291,20 @@ cern_region_complement_with_rectangle(CernRegion *region, CernRectangle *rect) {
   GpRect gp_rect;
   GpStatus status;
 
+  CernNativeGdiObject *gdi_object;
+  gpointer region_handle;
+
+  CombineMode mode = (CombineMode) CernCombineMode_Complement;
+
+  gdi_object = CERN_NATIVE_GDI_OBJECT(region);
+  region_handle = cern_native_gdi_object_get_native_handle(gdi_object);
+
   gp_rect.X = cern_rectangle_get_x(rect);
   gp_rect.Y = cern_rectangle_get_y(rect);
   gp_rect.Width = cern_rectangle_get_width(rect);
   gp_rect.Height = cern_rectangle_get_height(rect);
 
-  status
-    = GdipCombineRegionRectI(cern_region_get_native(region), &gp_rect,
-                             CernCombineMode_Complement);
+  status = GdipCombineRegionRectI(region_handle, &gp_rect, mode);
 
   if (status != Ok) {
     g_critical("cern_region_complement_with_rectangle(): GdipCombineRegionRect() failed");
@@ -291,6 +315,7 @@ void
 cern_region_complement_with_rectangle_f(CernRegion *region, CernRectangleF *rect) {
   GpRectF gp_rect;
   GpStatus status;
+  CombineMode mode = (CombineMode) CernCombineMode_Complement;
 
   gp_rect.X = cern_rectangle_f_get_x(rect);
   gp_rect.Y = cern_rectangle_f_get_y(rect);
@@ -298,8 +323,7 @@ cern_region_complement_with_rectangle_f(CernRegion *region, CernRectangleF *rect
   gp_rect.Height = cern_rectangle_f_get_height(rect);
 
   status
-    = GdipCombineRegionRect(cern_region_get_native(region), &gp_rect,
-                             CernCombineMode_Complement);
+    = GdipCombineRegionRect(cern_region_get_native(region), &gp_rect, mode);
 
   if (status != Ok) {
     g_critical("cern_region_complement_with_rectangle_f(): GdipCombineRegionRectF() failed");
@@ -349,15 +373,20 @@ void
 cern_region_exclude(CernRegion *self, CernRegion *region) {
   GpStatus status;
 
+  gpointer self_handle;
+  gpointer region_handle;
+
+  CombineMode mode = (CombineMode) CernCombineMode_Exclude;
+
   if (region == NULL) {
     g_critical("cern_region_exclude(): passed NULL region");
     return;
   }
 
-  status
-    = GdipCombineRegionRegion(cern_region_get_native(self),
-                              cern_region_get_native(region),
-                              CernCombineMode_Exclude);
+  self_handle = cern_region_get_native(self);
+  region_handle = cern_region_get_native(region);
+
+  status = GdipCombineRegionRegion(self_handle, region_handle, mode);
 
   if (status != Ok) {
     g_critical("cern_region_exclude(): GdipCombineRegionRegion() failed");
@@ -368,13 +397,18 @@ void
 cern_region_exclude_with_graphics_path(CernRegion *region,
                                        CernGraphicsPath *path) {
   GpStatus status;
-  CernNativeGdiObject *native_path;
+  CernNativeGdiObject *gdi_object;
+  gpointer self_handle;
+  gpointer path_handle;
 
-  native_path = CERN_NATIVE_GDI_OBJECT(path);
-  status
-    = GdipCombineRegionPath(cern_region_get_native(region),
-                            cern_native_gdi_object_get_native_handle(native_path),
-                            CernCombineMode_Exclude);
+  CombineMode mode = (CombineMode) CernCombineMode_Exclude;
+
+  gdi_object = CERN_NATIVE_GDI_OBJECT(path);
+
+  self_handle = cern_region_get_native(region);
+  path_handle = cern_native_gdi_object_get_native_handle(gdi_object);
+
+  status = GdipCombineRegionPath(self_handle, path_handle, mode);
 
 
   if (status != Ok) {
@@ -386,15 +420,17 @@ void
 cern_region_exclude_with_rectangle(CernRegion *region, CernRectangle *rect) {
   GpRect gp_rect;
   GpStatus status;
+  gpointer self_handle;
+  CombineMode mode = (CombineMode) CernCombineMode_Exclude;
 
   gp_rect.X = cern_rectangle_get_x(rect);
   gp_rect.Y = cern_rectangle_get_y(rect);
   gp_rect.Width = cern_rectangle_get_width(rect);
   gp_rect.Height = cern_rectangle_get_height(rect);
 
-  status
-    = GdipCombineRegionRectI(cern_region_get_native(region), &gp_rect,
-                             CernCombineMode_Exclude);
+  self_handle = cern_region_get_native(region);
+
+  status = GdipCombineRegionRectI(self_handle, &gp_rect, mode);
 
   if (status != Ok) {
     g_critical("cern_region_exclude_with_rectangle(): GdipCombineRegionRect() failed");
@@ -406,14 +442,18 @@ cern_region_exclude_with_rectangle_f(CernRegion *region, CernRectangleF *rect) {
   GpRectF gp_rect;
   GpStatus status;
 
+  gpointer self_handle;
+
+  CombineMode mode = (CombineMode) CernCombineMode_Exclude;
+
+  self_handle = cern_region_get_native(region);
+
   gp_rect.X = cern_rectangle_f_get_x(rect);
   gp_rect.Y = cern_rectangle_f_get_y(rect);
   gp_rect.Width = cern_rectangle_f_get_width(rect);
   gp_rect.Height = cern_rectangle_f_get_height(rect);
 
-  status
-    = GdipCombineRegionRect(cern_region_get_native(region), &gp_rect,
-                             CernCombineMode_Exclude);
+  status = GdipCombineRegionRect(self_handle, &gp_rect, mode);
 
   if (status != Ok) {
     g_critical("cern_region_exclude_with_rectangle_f(): GdipCombineRegionRectF() failed");
@@ -638,7 +678,7 @@ cern_region_is_visible_point(CernRegion *self, CernPoint *point) {
 
 gboolean
 cern_region_is_visible_rect_f(CernRegion *self, CernRectangleF *rect) {
-  cern_region_is_visible_rect_f_graphics(self, rect, NULL);
+  return cern_region_is_visible_rect_f_graphics(self, rect, NULL);
 }
 
 gboolean

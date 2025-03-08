@@ -153,7 +153,7 @@ cern_font_new_from_native(gpointer native_font,
   self->family = family;
   self->size = size;
   self->style = style;
-  self->unit = unit;
+  self->unit = (CernGraphicsUnit) unit;
   self->gdi_char_set = gdi_char_set;
   self->gdi_vertical_font = gdi_vertical_font;
 
@@ -197,7 +197,7 @@ cern_font_create_native(CernFont *self) {
 
   status
     = GdipCreateFont(font_family_handle, self->size, self->style,
-                     self->unit, &self->handle);
+                     (Unit) self->unit, &self->handle);
 
   if (status == FontStyleNotFound) {
     g_critical("%s(...): Font style not found for family '%s' with style %d",
@@ -205,7 +205,7 @@ cern_font_create_native(CernFont *self) {
     return FALSE;
   }
   else if (status != Ok) {
-    g_critical("%s(...): Failed to create font: %d", __func__, status);
+    g_critical("%s(...): Failed to create font: %u", __func__, status);
     return FALSE;
   }
 

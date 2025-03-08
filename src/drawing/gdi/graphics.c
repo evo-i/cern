@@ -3268,10 +3268,10 @@ cern_graphics_exclude_clip_region(CernGraphics *self, CernRegion *region) {
   native = cern_native_gdi_object_get_native_handle(object);
 
   status
-    = GdipSetClipRegion(self->handle, native, CernCombineMode_Exclude);
+    = GdipSetClipRegion(self->handle, native, (CombineMode) CernCombineMode_Exclude);
 
   if (status != Ok) {
-    g_critical("cern_graphics_exclude_clip_region(...): GdipSetClipRegion() Failed: %d", status);
+    g_critical("cern_graphics_exclude_clip_region(...): GdipSetClipRegion() Failed: %lu", status);
   }
 }
 
@@ -3638,7 +3638,7 @@ cern_graphics_begin_container(CernGraphics *self) {
 
   if (status != Ok) {
     g_clear_object(&context);
-    g_critical("cern_graphics_begin_container(): GdipBeginContainer2() Failed. %d", state);
+    g_critical("cern_graphics_begin_container(): GdipBeginContainer2() Failed. %lu", state);
     return NULL;
   }
 

@@ -18,8 +18,7 @@ CernColor
 cern_color_create_known_color(CernKnownColor known_color) {
   return (CernColor) {
     .known_color = known_color,
-    .state = CERN_COLOR_STATE_KNOWN_COLOR_VALID,
-    0
+    .state = CERN_COLOR_STATE_KNOWN_COLOR_VALID
   };
 }
 

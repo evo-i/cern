@@ -100,7 +100,7 @@ cern_frame_dimension_get_name(CernFrameDimension *self) {
 
   static gchar buffer[128] = { 0 };
   g_snprintf(buffer, sizeof(buffer),
-    "[FrameDimension: %08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x]", 11,
+    "[FrameDimension: %08lx-%04hx-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x]",
     self->guid.Data1, self->guid.Data2, self->guid.Data3,
     self->guid.Data4[0], self->guid.Data4[1], self->guid.Data4[2],
     self->guid.Data4[3], self->guid.Data4[4], self->guid.Data4[5],
