@@ -4,7 +4,7 @@
 #include <glib-object.h>
 
 #include "cern/drawing/rectangle.h"
-#include "../bounds_specific.h"
+#include "../bounds_specified.h"
 
 G_BEGIN_DECLS
 

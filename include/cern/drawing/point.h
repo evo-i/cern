@@ -18,10 +18,10 @@ GType
 cern_point_get_type (void);
 
 CernPoint *
-cern_point_copy (CernPoint *self);
+cern_point_copy(CernPoint *self);
 
 void
-cern_point_free (CernPoint *self);
+cern_point_free(CernPoint *self);
 
 CernPoint
 cern_point_create(gint32 x, gint32 y);

@@ -2,6 +2,7 @@
 #define CERN_SIZE_H
 
 #include <glib-object.h>
+#include <glib.h>
 
 G_BEGIN_DECLS
 
@@ -44,6 +45,9 @@ cern_size_get_height(CernSize *self);
 
 void
 cern_size_set_height(CernSize *self, gint32 height);
+
+gboolean
+cern_size_equals(CernSize *first, CernSize *second);
 
 G_END_DECLS
 

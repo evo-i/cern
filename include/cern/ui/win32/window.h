@@ -10,15 +10,13 @@ G_BEGIN_DECLS
 
 G_DECLARE_INTERFACE(CernWin32Window, cern_win32_window, CERN, WIN32_WINDOW, GObject);
 
-typedef HWND (*PFN_CernWin32WindowGetNative)(CernWin32Window *self);
-
 struct _CernWin32WindowInterface {
   GTypeInterface parent_iface;
 
-  PFN_CernWin32WindowGetNative get_native;
+  gpointer (*get_native)(CernWin32Window *self);
 };
 
-HWND
+gpointer
 cern_win32_window_get_native(CernWin32Window *self);
 
 G_END_DECLS

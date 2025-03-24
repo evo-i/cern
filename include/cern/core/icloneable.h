@@ -7,17 +7,17 @@ G_BEGIN_DECLS
 
 #define CERN_TYPE_ICLONEABLE (cern_i_cloneable_get_type())
 
-G_DECLARE_INTERFACE (CernICLoneable, cern_i_cloneable, CERN, ICLONEABLE, GObject)
+G_DECLARE_INTERFACE (CernICloneable, cern_i_cloneable, CERN, ICLONEABLE, GObject)
 
-struct _CernICLoneableInterface {
+struct _CernICloneableInterface {
   GTypeInterface parent_iface;
 
-  CernICLoneable *
-  (*clone) (CernICLoneable *self);
+  CernICloneable *
+  (*clone) (CernICloneable *self);
 };
 
-CernICLoneable *
-cern_i_cloneable_clone(CernICLoneable *self);
+CernICloneable *
+cern_i_cloneable_clone(CernICloneable *self);
 
 G_END_DECLS
 

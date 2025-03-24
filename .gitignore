@@ -1,6 +1,8 @@
 /[Bb]uild/
 /.vscode/
 # /vendor/
+/.cache/
+/vendor/
 main.c
 CMakePresets.json
 CMakeUserPresets.json

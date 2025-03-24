@@ -104,6 +104,12 @@ cern_rectangle_get_size(CernRectangle *self) {
     cern_size_create(self->width, self->height);
 }
 
+void
+cern_rectangle_set_size(CernRectangle *self, CernSize *size) {
+  self->width = size->width;
+  self->height = size->height;
+}
+
 CernPoint
 cern_rectangle_get_location(CernRectangle *self) {
   return cern_point_create(self->x, self->y);

@@ -1,4 +1,5 @@
 #include "cern/drawing/size.h"
+#include <glib.h>
 
 G_DEFINE_BOXED_TYPE(CernSize, cern_size, cern_size_copy, cern_size_free)
 
@@ -43,4 +44,11 @@ cern_size_get_height(CernSize *self) {
 void
 cern_size_set_height(CernSize *self, gint32 height) {
   self->height = height;
+}
+
+gboolean
+cern_size_equals(CernSize *first, CernSize *second) {
+  return 
+    first->width == second->width
+      && first->height == second->height;
 }

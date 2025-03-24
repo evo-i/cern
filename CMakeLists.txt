@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.31)
+cmake_minimum_required (VERSION 3.30)
 
 project (Cern C)
 
@@ -9,7 +9,8 @@ pkg_check_modules (GObject REQUIRED IMPORTED_TARGET "gobject-2.0;gio-2.0")
 
 add_library (cern_core
   SHARED
-    src/core/icloneable.c)
+    src/core/icloneable.c
+    src/core/windows/handle.c)
 
 target_include_directories (cern_core
   PUBLIC
@@ -20,8 +21,12 @@ target_link_libraries (cern_core
     Threads::Threads
     PkgConfig::GObject)
 
+file(GLOB cern_drawing_headers "include/cern/drawing/*.h")
+
 add_library (cern_drawing
   SHARED
+    ${cern_drawing_headers}
+
     src/drawing/gdi/color.c
     src/drawing/gdi/drawing.c
     src/drawing/gdi/region.c
@@ -39,10 +44,19 @@ add_library (cern_drawing
     src/drawing/gdi/rectangle.c
     src/drawing/gdi/rectangle_f.c
 
+    # fonts
+    src/drawing/gdi/font_family.c
+    src/drawing/gdi/font.c
+
     # images
     src/drawing/gdi/icon.c
     src/drawing/gdi/image.c
     src/drawing/gdi/bitmap.c
+
+    # text
+    src/drawing/gdi/text/font_collection.c
+    src/drawing/gdi/text/private_font_collection.c
+    src/drawing/gdi/text/installed_font_collection.c
 
     # draw resources
     src/drawing/gdi/pen.c
@@ -50,7 +64,9 @@ add_library (cern_drawing
     src/drawing/gdi/solid_brush.c
 
     # 2d
+    src/drawing/gdi/2d/blend.c
     src/drawing/gdi/2d/matrix.c
+    src/drawing/gdi/2d/color_blend.c
     src/drawing/gdi/2d/hatch_brush.c
     src/drawing/gdi/2d/region_data.c
     src/drawing/gdi/2d/graphics_path.c
@@ -64,6 +80,9 @@ add_library (cern_drawing
     src/drawing/gdi/internal/device_context.c
     src/drawing/gdi/internal/color_translator.c
     src/drawing/gdi/internal/i_device_context.c
+    src/drawing/gdi/internal/windows_graphics.c
+    src/drawing/gdi/internal/windows_region.c
+    src/drawing/gdi/internal/font_handle_wrapper.c
     src/drawing/gdi/internal/native_gdi_object.c)
 
 target_include_directories (cern_drawing
@@ -110,16 +129,31 @@ add_library (cern_ui
     src/ui/win32/window.c
     src/ui/drop_target.c
 
-    src/ui/control.c
+    # src/ui/control.c
     src/ui/component_model/isite.c
     src/ui/component_model/component.c
     src/ui/component_model/icomponent.c
     src/ui/component_model/icontainer.c
+    src/ui/component_model/event_args.c
+
+    src/ui/cursor.c
+    src/ui/control.c
+    src/ui/control_tab_order_holder.c
+
+    src/ui/native_window.c
+    src/ui/control_native_window.c
+
+    src/ui/property_store.c
+    src/ui/window_target.c
     src/ui/component_model/iservice_provider.c)
 
 target_include_directories (cern_ui
   PRIVATE
     "include/")
+
+set_target_properties (cern_ui
+  PROPERTIES
+    C_STANDARD 17)
 
 target_link_libraries (cern_ui
   PUBLIC
@@ -127,8 +161,9 @@ target_link_libraries (cern_ui
     Threads::Threads
     PkgConfig::GObject)
 
-# add_executable (main main.c)
+add_executable (main main.c)
 
-# target_link_libraries(main PRIVATE cern_ui cern_drawing)
+target_link_libraries(main PRIVATE cern_drawing)
 
-# target_include_directories (main PRIVATE "include/")
+target_include_directories (main PRIVATE "include/")
+

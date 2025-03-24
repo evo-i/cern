@@ -8,7 +8,7 @@ cern_win32_window_default_init(CernWin32WindowInterface *iface) {
   // Add default initialization code here
 }
 
-HWND
+gpointer
 cern_win32_window_get_native(CernWin32Window *self) {
   CernWin32WindowInterface *iface;
 

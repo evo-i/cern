@@ -66,6 +66,9 @@ cern_rectangle_get_bottom(CernRectangle *self);
 CernSize
 cern_rectangle_get_size(CernRectangle *self);
 
+void
+cern_rectangle_set_size(CernRectangle *self, CernSize *size);
+
 CernPoint
 cern_rectangle_get_location(CernRectangle *self);
 

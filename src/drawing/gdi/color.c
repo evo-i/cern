@@ -204,6 +204,24 @@ cern_color_get_saturation(CernColor *self) {
   return 0.0f;
 }
 
+gboolean
+cern_color_equals(CernColor *self, CernColor *other) {
+  if (self->value == other->value
+      && self->known_color == other->known_color
+      && self->state == other->state) {
+    if (g_strcmp0(self->name.value, other->name.value) == 0) {
+      return TRUE;
+    }
+
+    if (self->name.value == NULL || other->name.value == NULL) {
+      return FALSE;
+    }
+
+    return g_strcmp0(self->name.value, other->name.value) == 0;
+  }
+  return FALSE;
+}
+
 CernKnownColor
 cern_color_to_known_color(CernColor *self) {
   return self->known_color;

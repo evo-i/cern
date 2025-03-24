@@ -3,6 +3,60 @@
 #include "cern/ui/component_model/icomponent.h"
 #include "cern/ui/component_model/iservice_provider.h"
 
+#include <stdbool.h>
+
+#define STATE_CREATED                             (0x00000001)
+#define STATE_VISIBLE                             (0x00000002)
+#define STATE_ENABLED                             (0x00000004)
+#define STATE_TABSTOP                             (0x00000008)
+#define STATE_RECREATE                            (0x00000010)
+#define STATE_MODAL                               (0x00000020)
+#define STATE_ALLOWDROP                           (0x00000040)
+#define STATE_DROPTARGET                          (0x00000080)
+#define STATE_NOZORDER                            (0x00000100)
+#define STATE_LAYOUTDEFERRED                      (0x00000200)
+#define STATE_USEWAITCURSOR                       (0x00000400)
+#define STATE_DISPOSED                            (0x00000800)
+#define STATE_DISPOSING                           (0x00001000)
+#define STATE_MOUSEENTERPENDING                   (0x00002000)
+#define STATE_TRACKINGMOUSEEVENT                  (0x00004000)
+#define STATE_THREADMARSHALLPENDING               (0x00008000)
+#define STATE_SIZELOCKEDBYOS                      (0x00010000)
+#define STATE_CAUSESVALIDATION                    (0x00020000)
+#define STATE_CREATINGHANDLE                      (0x00040000)
+#define STATE_TOPLEVEL                            (0x00080000)
+#define STATE_ISACCESSIBLE                        (0x00100000)
+#define STATE_OWNCTLBRUSH                         (0x00200000)
+#define STATE_EXCEPTIONWHILEPAINTING              (0x00400000)
+#define STATE_LAYOUTISDIRTY                       (0x00800000)
+#define STATE_CHECKEDHOST                         (0x01000000)
+#define STATE_HOSTEDINDIALOG                      (0x02000000)
+#define STATE_DOUBLECLICKFIRED                    (0x04000000)
+#define STATE_MOUSEPRESSED                        (0x08000000)
+#define STATE_VALIDATIONCANCELLED                 (0x10000000)
+#define STATE_PARENTRECREATING                    (0x20000000)
+#define STATE_MIRRORED                            (0x40000000)
+#define STATE2_HAVEINVOKED                        (0x00000001)
+#define STATE2_SETSCROLLPOS                       (0x00000002)
+#define STATE2_LISTENINGTOUSERPREFERENCECHANGED   (0x00000004)
+#define STATE2_INTERESTEDINUSERPREFERENCECHANGED  (0x00000008)
+#define STATE2_MAINTAINSOWNCAPTUREMODE            (0x00000010)
+#define STATE2_BECOMINGACTIVECONTROL              (0x00000020)
+
+#define STATE2_CLEARLAYOUTARGS                    (0x00000040)
+#define STATE2_INPUTKEY                           (0x00000080)
+#define STATE2_INPUTCHAR                          (0x00000100)
+#define STATE2_UICUES                             (0x00000200)
+#define STATE2_ISACTIVEX                          (0x00000400)
+#define STATE2_USEPREFERREDSIZECACHE              (0x00000800)
+#define STATE2_TOPMDIWINDOWCLOSING                (0x00001000)
+#define STATE2_CURRENTLYBEINGSCALED               (0x00002000)
+
+_Thread_local
+static
+gboolean
+in_cross_thread_safe_call = FALSE;
+
 static
 inline
 gpointer

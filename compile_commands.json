@@ -1,0 +1,368 @@
+[
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_core_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -o CMakeFiles\\cern_core.dir\\src\\core\\icloneable.c.obj -c F:\\Git\\Cern\\src\\core\\icloneable.c",
+  "file": "F:\\Git\\Cern\\src\\core\\icloneable.c",
+  "output": "CMakeFiles\\cern_core.dir\\src\\core\\icloneable.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_core_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -o CMakeFiles\\cern_core.dir\\src\\core\\windows\\handle.c.obj -c F:\\Git\\Cern\\src\\core\\windows\\handle.c",
+  "file": "F:\\Git\\Cern\\src\\core\\windows\\handle.c",
+  "output": "CMakeFiles\\cern_core.dir\\src\\core\\windows\\handle.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\color.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\color.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\color.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\color.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\drawing.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\drawing.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\drawing.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\drawing.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\region.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\region.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\region.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\region.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\graphics.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\graphics.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\graphics.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\graphics.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\image_format.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\image_format.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\image_format.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\image_format.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\property_item.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\property_item.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\property_item.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\property_item.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\color_palette.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\color_palette.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\color_palette.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\color_palette.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\frame_dimension.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\frame_dimension.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\frame_dimension.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\frame_dimension.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\graphics_context.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\graphics_context.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\graphics_context.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\graphics_context.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\size.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\size.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\size.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\size.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\point.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\point.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\point.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\point.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\size_f.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\size_f.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\size_f.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\size_f.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\point_f.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\point_f.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\point_f.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\point_f.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\rectangle.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\rectangle.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\rectangle.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\rectangle.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\rectangle_f.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\rectangle_f.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\rectangle_f.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\rectangle_f.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\font_family.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\font_family.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\font_family.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\font_family.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\font.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\font.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\font.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\font.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\icon.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\icon.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\icon.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\icon.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\image.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\image.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\image.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\image.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\bitmap.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\bitmap.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\bitmap.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\bitmap.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\text\\font_collection.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\text\\font_collection.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\text\\font_collection.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\text\\font_collection.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\text\\private_font_collection.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\text\\private_font_collection.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\text\\private_font_collection.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\text\\private_font_collection.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\text\\installed_font_collection.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\text\\installed_font_collection.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\text\\installed_font_collection.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\text\\installed_font_collection.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\pen.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\pen.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\pen.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\pen.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\brush.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\brush.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\brush.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\brush.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\solid_brush.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\solid_brush.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\solid_brush.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\solid_brush.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\2d\\blend.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\2d\\blend.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\2d\\blend.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\2d\\blend.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\2d\\matrix.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\2d\\matrix.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\2d\\matrix.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\2d\\matrix.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\2d\\color_blend.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\2d\\color_blend.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\2d\\color_blend.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\2d\\color_blend.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\2d\\hatch_brush.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\2d\\hatch_brush.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\2d\\hatch_brush.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\2d\\hatch_brush.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\2d\\region_data.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\2d\\region_data.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\2d\\region_data.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\2d\\region_data.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\2d\\graphics_path.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\2d\\graphics_path.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\2d\\graphics_path.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\2d\\graphics_path.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\2d\\graphics_state.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\2d\\graphics_state.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\2d\\graphics_state.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\2d\\graphics_state.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\2d\\graphics_container.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\2d\\graphics_container.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\2d\\graphics_container.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\2d\\graphics_container.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\imaging\\bitmap_data.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\imaging\\bitmap_data.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\imaging\\bitmap_data.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\imaging\\bitmap_data.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\internal\\device_context.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\internal\\device_context.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\internal\\device_context.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\internal\\device_context.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\internal\\color_translator.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\internal\\color_translator.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\internal\\color_translator.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\internal\\color_translator.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\internal\\i_device_context.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\internal\\i_device_context.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\internal\\i_device_context.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\internal\\i_device_context.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\internal\\windows_graphics.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\internal\\windows_graphics.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\internal\\windows_graphics.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\internal\\windows_graphics.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\internal\\windows_region.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\internal\\windows_region.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\internal\\windows_region.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\internal\\windows_region.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\internal\\font_handle_wrapper.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\internal\\font_handle_wrapper.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\internal\\font_handle_wrapper.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\internal\\font_handle_wrapper.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_drawing_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\internal\\native_gdi_object.c.obj -c F:\\Git\\Cern\\src\\drawing\\gdi\\internal\\native_gdi_object.c",
+  "file": "F:\\Git\\Cern\\src\\drawing\\gdi\\internal\\native_gdi_object.c",
+  "output": "CMakeFiles\\cern_drawing.dir\\src\\drawing\\gdi\\internal\\native_gdi_object.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_io_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -std=c17 -o CMakeFiles\\cern_io.dir\\src\\io\\stream.c.obj -c F:\\Git\\Cern\\src\\io\\stream.c",
+  "file": "F:\\Git\\Cern\\src\\io\\stream.c",
+  "output": "CMakeFiles\\cern_io.dir\\src\\io\\stream.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_ui_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -o CMakeFiles\\cern_ui.dir\\src\\ui\\win32\\window.c.obj -c F:\\Git\\Cern\\src\\ui\\win32\\window.c",
+  "file": "F:\\Git\\Cern\\src\\ui\\win32\\window.c",
+  "output": "CMakeFiles\\cern_ui.dir\\src\\ui\\win32\\window.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_ui_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -o CMakeFiles\\cern_ui.dir\\src\\ui\\drop_target.c.obj -c F:\\Git\\Cern\\src\\ui\\drop_target.c",
+  "file": "F:\\Git\\Cern\\src\\ui\\drop_target.c",
+  "output": "CMakeFiles\\cern_ui.dir\\src\\ui\\drop_target.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_ui_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -o CMakeFiles\\cern_ui.dir\\src\\ui\\component_model\\isite.c.obj -c F:\\Git\\Cern\\src\\ui\\component_model\\isite.c",
+  "file": "F:\\Git\\Cern\\src\\ui\\component_model\\isite.c",
+  "output": "CMakeFiles\\cern_ui.dir\\src\\ui\\component_model\\isite.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_ui_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -o CMakeFiles\\cern_ui.dir\\src\\ui\\component_model\\component.c.obj -c F:\\Git\\Cern\\src\\ui\\component_model\\component.c",
+  "file": "F:\\Git\\Cern\\src\\ui\\component_model\\component.c",
+  "output": "CMakeFiles\\cern_ui.dir\\src\\ui\\component_model\\component.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_ui_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -o CMakeFiles\\cern_ui.dir\\src\\ui\\component_model\\icomponent.c.obj -c F:\\Git\\Cern\\src\\ui\\component_model\\icomponent.c",
+  "file": "F:\\Git\\Cern\\src\\ui\\component_model\\icomponent.c",
+  "output": "CMakeFiles\\cern_ui.dir\\src\\ui\\component_model\\icomponent.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_ui_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -o CMakeFiles\\cern_ui.dir\\src\\ui\\component_model\\icontainer.c.obj -c F:\\Git\\Cern\\src\\ui\\component_model\\icontainer.c",
+  "file": "F:\\Git\\Cern\\src\\ui\\component_model\\icontainer.c",
+  "output": "CMakeFiles\\cern_ui.dir\\src\\ui\\component_model\\icontainer.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_ui_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -o CMakeFiles\\cern_ui.dir\\src\\ui\\component_model\\event_args.c.obj -c F:\\Git\\Cern\\src\\ui\\component_model\\event_args.c",
+  "file": "F:\\Git\\Cern\\src\\ui\\component_model\\event_args.c",
+  "output": "CMakeFiles\\cern_ui.dir\\src\\ui\\component_model\\event_args.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_ui_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -o CMakeFiles\\cern_ui.dir\\src\\ui\\cursor.c.obj -c F:\\Git\\Cern\\src\\ui\\cursor.c",
+  "file": "F:\\Git\\Cern\\src\\ui\\cursor.c",
+  "output": "CMakeFiles\\cern_ui.dir\\src\\ui\\cursor.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_ui_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -o CMakeFiles\\cern_ui.dir\\src\\ui\\control.c.obj -c F:\\Git\\Cern\\src\\ui\\control.c",
+  "file": "F:\\Git\\Cern\\src\\ui\\control.c",
+  "output": "CMakeFiles\\cern_ui.dir\\src\\ui\\control.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_ui_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -o CMakeFiles\\cern_ui.dir\\src\\ui\\control_tab_order_holder.c.obj -c F:\\Git\\Cern\\src\\ui\\control_tab_order_holder.c",
+  "file": "F:\\Git\\Cern\\src\\ui\\control_tab_order_holder.c",
+  "output": "CMakeFiles\\cern_ui.dir\\src\\ui\\control_tab_order_holder.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_ui_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -o CMakeFiles\\cern_ui.dir\\src\\ui\\native_window.c.obj -c F:\\Git\\Cern\\src\\ui\\native_window.c",
+  "file": "F:\\Git\\Cern\\src\\ui\\native_window.c",
+  "output": "CMakeFiles\\cern_ui.dir\\src\\ui\\native_window.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_ui_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -o CMakeFiles\\cern_ui.dir\\src\\ui\\control_native_window.c.obj -c F:\\Git\\Cern\\src\\ui\\control_native_window.c",
+  "file": "F:\\Git\\Cern\\src\\ui\\control_native_window.c",
+  "output": "CMakeFiles\\cern_ui.dir\\src\\ui\\control_native_window.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_ui_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -o CMakeFiles\\cern_ui.dir\\src\\ui\\property_store.c.obj -c F:\\Git\\Cern\\src\\ui\\property_store.c",
+  "file": "F:\\Git\\Cern\\src\\ui\\property_store.c",
+  "output": "CMakeFiles\\cern_ui.dir\\src\\ui\\property_store.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_ui_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -o CMakeFiles\\cern_ui.dir\\src\\ui\\window_target.c.obj -c F:\\Git\\Cern\\src\\ui\\window_target.c",
+  "file": "F:\\Git\\Cern\\src\\ui\\window_target.c",
+  "output": "CMakeFiles\\cern_ui.dir\\src\\ui\\window_target.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -Dcern_ui_EXPORTS -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -o CMakeFiles\\cern_ui.dir\\src\\ui\\component_model\\iservice_provider.c.obj -c F:\\Git\\Cern\\src\\ui\\component_model\\iservice_provider.c",
+  "file": "F:\\Git\\Cern\\src\\ui\\component_model\\iservice_provider.c",
+  "output": "CMakeFiles\\cern_ui.dir\\src\\ui\\component_model\\iservice_provider.c.obj"
+},
+{
+  "directory": "F:/Git/Cern/build/base-clang",
+  "command": "F:\\MSYS\\clang64\\bin\\clang.exe -IF:/Git/Cern/include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/../include/glib-2.0 -isystem F:/Git/Cern/vendor/vcpkg/installed/x64-windows/debug/lib/glib-2.0/include -o CMakeFiles\\main.dir\\main.c.obj -c F:\\Git\\Cern\\main.c",
+  "file": "F:\\Git\\Cern\\main.c",
+  "output": "CMakeFiles\\main.dir\\main.c.obj"
+}
+]

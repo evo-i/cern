@@ -84,6 +84,9 @@ cern_color_get_hue(CernColor *self);
 float
 cern_color_get_saturation(CernColor *self);
 
+gboolean
+cern_color_equals(CernColor *self, CernColor *other);
+
 gint32
 cern_color_to_argb(CernColor *self);
 
