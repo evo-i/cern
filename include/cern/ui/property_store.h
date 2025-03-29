@@ -143,6 +143,11 @@ cern_property_store_set_integer(CernPropertyStore *self, gint32 key, gint32 valu
 void
 cern_property_store_set_object(CernPropertyStore *self, gint32 key, gpointer value);
 
+void
+cern_property_store_remove_integer(CernPropertyStore *self, gint32 key);
+
+void
+cern_property_store_remove_object(CernPropertyStore *self, gint32 key);
 
 G_END_DECLS
 

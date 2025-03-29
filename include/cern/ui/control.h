@@ -14,6 +14,7 @@ G_BEGIN_DECLS
 #include "layout_engine.h"
 #include "auto_size_mode.h"
 #include "context_menu.h"
+#include "cern/drawing/rectangle.h"
 #include "component_model/component.h"
 #include "component_model/cancel_event_args.h"
 #include "component_model/event_args.h"
@@ -21,6 +22,7 @@ G_BEGIN_DECLS
 #include "component_model/invalidate_event_args.h"
 #include "component_model/paint_event_args.h"
 #include "cern/drawing/bitmap.h"
+#include "cern/drawing/point.h"
 #include "create_params.h"
 #include "get_child_at_point_skip.h"
 #include "component_model/layout_event_args.h"
@@ -37,6 +39,9 @@ G_BEGIN_DECLS
 #include "image_layout.h"
 #include "ambient_properties.h"
 #include "message.h"
+#include "horizontal_alignment.h"
+#include "left_right_alignment.h"
+#include "content_alignment.h"
 
 #define CERN_CONTROL_STATE_CREATED                            (0x00000001)
 #define CERN_CONTROL_STATE_VISIBLE                            (0x00000002)
@@ -97,6 +102,12 @@ typedef struct _CernContextMenuStrip CernContextMenuStrip;
 typedef struct _CernDragEventArgs CernDragEventArgs;
 typedef struct _CernHelpEventArgs CernHelpEventArgs;
 typedef struct _CernGiveFeedbackEventArgs CernGiveFeedbackEventArgs;
+typedef struct _CernQueryContinueEventArgs CernQueryContinueDragEventArgs;
+typedef enum _CernPreProcessControlState CernPreProcessControlState;
+typedef gint32 CernValidationConstraints;
+typedef struct _CernContainerControl CernContainerControl;
+typedef struct _CernToolStripControlHost CernToolStripControlHost;
+typedef struct _CernToolTip CernToolTip;
 
 #define CERN_TYPE_CONTROL cern_control_get_type()
 
@@ -160,8 +171,6 @@ struct _CernControlClass {
   gboolean
   (*get_can_access_properties)(CernControl *self);
 
-  gboolean
-  (*get_can_focus)(CernControl *self);
 
   CernContextMenu *
   (*get_context_menu)(CernControl *self);
@@ -179,7 +188,7 @@ struct _CernControlClass {
   (*get_create_params)(CernControl *self);
 
   void
-  (*notify_validaton_result)(CernControl *sender, CernCancelEventArgs *result);
+  (*notify_validation_result)(CernControl *sender, CernCancelEventArgs *result);
 
   CernCursor *
   (*get_cursor)(CernControl *self);
@@ -544,7 +553,7 @@ struct _CernControlClass {
   (*text_changed)(CernControl *sender, CernEventArgs *args);
 
   void
-  (*vissible_changed)(CernControl *sender, CernEventArgs *args);
+  (*visible_changed)(CernControl *sender, CernEventArgs *args);
 
   void
   (*click)(CernControl *sender, CernEventArgs *args);
@@ -661,6 +670,9 @@ struct _CernControlClass {
 
   void
   (*parent_changed)(CernControl *sender, CernEventArgs *args);
+
+
+  /* ContinueHere */
 };
 
 CernControl *
@@ -1519,9 +1531,6 @@ void
 cern_control_on_parent_became_invisible(CernControl *self);
 
 void
-cern_control_on_paint(CernControl *self, CernPaintEventArgs *args);
-
-void
 cern_control_on_tab_index_changed(CernControl *self, CernEventArgs *args);
 
 void
@@ -1551,7 +1560,7 @@ cern_control_on_control_removed(CernControl *self, CernEventArgs *args);
 /* new */
 
 void
-cern_control_on_control_created(CernControl *self);
+cern_control_on_create_control(CernControl *self);
 
 void
 cern_control_on_handle_created(CernControl *self, CernEventArgs *args);
@@ -1627,6 +1636,502 @@ cern_control_on_lost_focus(CernControl *self, CernEventArgs *args);
 
 void
 cern_control_on_margin_changed(CernControl *self, CernEventArgs *args);
+
+void
+cern_control_on_mouse_double_click(CernControl *self, CernEventArgs *args);
+
+void
+cern_control_on_mouse_clock(CernControl *self, CernEventArgs *args);
+
+void
+cern_control_on_mouse_capture_changed(CernControl *self, CernEventArgs *args);
+
+void
+cern_control_on_mouse_down(CernControl *self, CernEventArgs *args);
+
+void
+cern_control_on_mouse_enter(CernControl *self, CernEventArgs *args);
+
+void
+cern_control_on_mouse_leave(CernControl *self, CernEventArgs *args);
+
+void
+cern_control_on_dpi_changed_before_parent(CernControl *self, CernEventArgs *args);
+
+void
+cern_control_on_dpi_changed_afrer_parent(CernControl *self, CernEventArgs *args);
+
+void
+cern_control_on_mouse_hover(CernControl *self, CernEventArgs *args);
+
+void
+cern_control_on_mouse_move(CernControl *self, CernMouseEventArgs *args);
+
+void
+cern_control_on_mouse_up(CernControl *self, CernMouseEventArgs *args);
+
+void
+cern_control_on_mouse_up(CernControl *self, CernMouseEventArgs *args);
+
+void
+cern_control_on_move(CernControl *self, CernEventArgs *args);
+
+void
+cern_control_on_paint(CernControl *self, CernPaintEventArgs *args);
+
+void
+cern_control_on_padding_changed(CernControl *self, CernEventArgs *args);
+
+void
+cern_control_on_paint_background(CernControl *self, CernPaintEventArgs *args);
+
+void
+cern_control_on_parent_invalidated(CernControl *self, CernInvalidateEventArgs *args);
+
+void
+cern_control_on_query_continue_drag(CernControl *self, CernQueryContinueDragEventArgs *args);
+
+void
+cern_control_on_region_changed(CernControl *self, CernEventArgs *args);
+
+void
+cern_control_on_resize(CernControl *self, CernEventArgs *args);
+
+void
+cern_control_on_preview_key_down(CernControl *self, CernPreviewKeyDownEventArgs *args);
+
+void
+cern_control_on_size_changed(CernControl *self, CernEventArgs *args);
+
+void
+cern_control_on_change_ui_cues(CernControl *self, CernUICuesEventArgs *args);
+
+void
+cern_control_on_style_changed(CernControl *self, CernEventArgs *args);
+
+void
+cern_control_on_system_colors_changed(CernControl *self, CernEventArgs *args);
+
+void
+cern_control_on_validating(CernControl *self, CernCancelEventArgs *args);
+
+void
+cern_control_on_validated(CernControl *self, CernEventArgs *args);
+
+void
+cern_control_rescale_constants_for_dpi(CernControl *self,
+                                       gint32 old_device_dpi,
+                                       gint32 new_device_dpi);
+
+void
+cern_control_paint_background(CernControl *self, CernPaintEventArgs *args, 
+                              CernRectangle *rectangle, CernColor *back_color,
+                              CernPoint *scroll_offset);
+
+void
+cern_control_paint_transparent_background(CernControl *self,
+                                          CernPaintEventArgs *args,
+                                          CernRectangle *rectangle,
+                                          CernRegion *transparent_region);
+
+CernContainerControl *
+cern_control_get_parent_container_control(CernControl *self);
+
+void
+cern_control_perform_layout(CernControl *self);
+
+void
+cern_control_perform_layout_ex(CernControl *self,
+                               CernControl *affected_control,
+                               gchar const *affected_property);
+
+void
+cern_control_perform_layout_ea(CernControl *self,
+                               CernLayoutEventArgs *args);
+
+void
+cern_control_perform_control_validation(CernControl *self,
+                                        gboolean bulk_validation);
+
+void
+cern_control_perform_container_validation(CernControl *self,
+                                          CernValidationConstraints validation_onstraints);
+
+CernPoint
+cern_control_point_to_client(CernControl *self, CernPoint *point);
+
+CernPoint
+cern_control_point_to_client_internal(CernControl *self, CernPoint *point);
+
+CernPoint
+cern_control_point_to_screen(CernControl *self, CernPoint *point);
+
+gboolean
+cern_control_pre_process_message(CernControl *self, CernMessage *message);
+
+CernPreProcessControlState
+cern_control_pre_process_control_message(CernControl *self, CernMessage *message);
+
+CernPreProcessControlState
+cern_control_pre_process_control_message_internal(CernControl *control, CernMessage *message);
+
+gboolean
+cern_control_process_cmd_key(CernControl *self, CernMessage *message, CernKeys key_data);
+
+void
+cern_control_print_to_metafile_recursive(CernControl *self,
+                                         gpointer hdc,
+                                         gpointer lparam,
+                                         CernRectangle *bounds);
+
+gboolean
+cern_control_process_dialog_char(CernControl *self, gchar char_code);
+
+gboolean
+cern_control_process_dialog_key(CernControl *self, CernKeys key_data);
+
+gboolean
+cern_control_process_key_event_args(CernControl *self, CernMessage *message);
+
+gboolean
+cern_control_process_key_message(CernControl *self, CernMessage *message);
+
+gboolean
+cern_control_process_key_preview(CernControl *self, CernMessage *message);
+
+gboolean
+cern_control_process_mnemonic(CernControl *self, gchar key_code);
+
+gboolean
+cern_control_process_ui_cues(CernControl *self, CernMessage *message);
+
+void
+cern_control_raise_drag_event(CernControl *self, GObject *key, CernDragEventArgs *args);
+
+void
+cern_control_raise_paint_event(CernControl *self, GObject *key, CernPaintEventArgs *args);
+
+void
+cern_control_reset_back_color(CernControl *self);
+
+void
+cern_control_reset_cursor(CernControl *self);
+
+void
+cern_control_reset_font(CernControl *self);
+
+void
+cern_control_reset_fore_color(CernControl *self);
+
+void
+cern_control_reset_right_to_left(CernControl *self);
+
+void
+cern_control_recreate_handle(CernControl *self);
+
+void
+cern_control_recreat_handle_core(CernControl *self);
+
+CernRectangle
+cern_control_rectangle_to_client(CernControl *self, CernRectangle *rectangle);
+
+CernRectangle
+cern_control_rectangle_to_screen(CernControl *self, CernRectangle *rectangle);
+
+gboolean
+cern_control_reflect_message(gpointer hwnd, CernMessage *message);
+
+gboolean
+cern_control_reflect_message_internal(gpointer hwnd, CernMessage *message);
+
+void
+cern_control_refresh(CernControl *self);
+
+void
+cern_control_release_uia_provider(CernControl *self, gpointer handle);
+
+void
+cern_control_reset_mouse_event_args(CernControl *self);
+
+void
+cern_control_reset_text(CernControl *self);
+
+void
+cern_control_resume_layout(CernControl *self);
+
+void
+cern_control_resume_layout_ex(CernControl *self, gboolean perform_layout);
+
+void
+cern_control_set_accept_drops(CernControl *self, gboolean accept);
+
+void
+cern_control_scale(CernControl *self, CernSizeF *factor);
+
+void
+cern_control_scale_ex(CernControl *self,
+                      CernSizeF *include_factor,
+                      CernSizeF exclude_factor,
+                      CernControl *requesting_control);
+
+void
+cern_control_scale_child_controls(CernControl *self,
+                                  CernSizeF *inlcude_factor,
+                                  CernSizeF *exclude_factor,
+                                  CernControl *requesting_control,
+                                  gboolean update_window_font_if_needed);
+
+void
+cern_control_update_window_font_if_needed(CernControl *self);
+
+void
+cern_control_scale_control(CernControl *self,
+                           CernSizeF *include_factor,
+                           CernSizeF *exclude_factor,
+                           CernControl *requesting_control);
+
+void
+cern_control_scale_control_with_bounds(CernControl *self,
+                                       CernSizeF *factor,
+                                       CernBoundsSpecified specified);
+
+void
+cern_control_scale_core(CernControl *self, gfloat dx, gfloat dy);
+
+CernSize
+cern_control_scale_size(CernControl *self, CernSize *start_size, gfloat x, float y);
+
+void
+cern_control_select(CernControl *self);
+
+void
+cern_control_select_ex(CernControl *self, gboolean directed, gboolean forward);
+
+gboolean
+cern_control_select_next_control(CernControl *self,
+                                 CernControl *ctl,
+                                 gboolean forward,
+                                 gboolean tab_stop_only,
+                                 gboolean nested,
+                                 gboolean wrap);
+
+gboolean
+cern_control_select_next_control_internal(CernControl *self,
+                                          CernControl *ctl,
+                                          gboolean forward,
+                                          gboolean tab_stop_only,
+                                          gboolean nested,
+                                          gboolean wrap);
+
+gpointer
+cern_control_send_message(CernControl *self, guint32 msg, gpointer w, gpointer l);
+
+void
+cern_control_sent_back(CernControl *self);
+
+void
+cern_control_set_bounds_i(CernControl *self, 
+                          gint32 x, gint32 y,
+                          gint32 w, gint32 h);
+
+void
+cern_control_set_bounds_is(CernControl *self,
+                           gint32 x, gint32 y,
+                           gint32 w, gint32 h,
+                           CernBoundsSpecified specified);
+
+void
+cern_control_set_bounds_core(CernControl *self,
+                             gint32 x, gint32 y,
+                             gint32 w, gint32 h,
+                             CernBoundsSpecified specified);
+
+void
+cern_control_set_client_size_core(CernControl *self,
+                                  gint32 width, gint32 height);
+
+CernSize
+cern_control_size_from_client_size(CernControl *self,
+                                   CernSize *client_size);
+
+CernSize
+cern_control_size_from_client_size_i(CernControl *self,
+                                     gint32 width, gint32 height);
+
+void
+cern_control_set_state(CernControl *self, gint32 flag, gboolean value);
+
+void
+cern_control_set_state2(CernControl *self, gint32 flag, gboolean value);
+
+void
+cern_control_set_style(CernControl *self, CernControlStyles flag, gboolean value);
+
+gpointer
+cern_control_set_up_palette(gpointer dc, gboolean force, gboolean release_palette);
+
+void
+cern_control_set_top_level(CernControl *self, gboolean value);
+
+void
+cern_control_set_top_level_internal(CernControl *self, gboolean value);
+
+void
+cern_control_set_visible_core(CernControl *self, gboolean value);
+
+/*
+ * FIXME: Realize this
+internal static AutoValidate GetAutoValidateForControl(Control control) {
+  ContainerControl parent = control.ParentContainerControl;
+  return (parent != null) ? parent.AutoValidate : AutoValidate.EnablePreventFocusChange;
+}
+*/
+
+gboolean
+cern_control_get_should_auto_validate(CernControl *self);
+
+gboolean
+cern_control_get_should_perform_container_validation(CernControl *self);
+
+gboolean
+cern_control_get_should_serialize_back_color(CernControl *self);
+
+gboolean
+cern_control_get_should_serialize_cursor(CernControl *self);
+
+gboolean
+cern_control_get_should_serialize_enabled(CernControl *self);
+
+gboolean
+cern_control_get_should_serialize_fore_color(CernControl *self);
+
+gboolean
+cern_control_get_should_serialize_font(CernControl *self);
+
+gboolean
+cern_control_get_should_serialize_right_to_left(CernControl *self);
+
+gboolean
+cern_control_get_should_serialize_visible(CernControl *self);
+
+
+CernHorizontalAlignment
+cern_control_rtl_translate_alignment_h(CernControl *self, CernHorizontalAlignment align);
+
+CernLeftRightAlignment
+cern_control_rtl_translate_alignment_lr(CernControl *self, CernLeftRightAlignment align);
+
+CernContentAlignment
+cern_control_rtl_translate_alignment_c(CernControl *self, CernContentAlignment align);
+
+CernHorizontalAlignment
+cern_control_rtl_translate_horizontal(CernControl *self, CernHorizontalAlignment align);
+
+CernLeftRightAlignment
+cern_control_rtl_translate_left_right(CernControl *self, CernLeftRightAlignment align);
+
+CernContentAlignment
+cern_control_rtl_translate_content(CernControl *self, CernContentAlignment align);
+
+void
+cern_control_show(CernControl *self);
+
+gboolean
+cern_control_get_should_serialize_margin(CernControl *self);
+
+gboolean
+cern_control_get_should_serialize_maximum_size(CernControl *self);
+
+gboolean
+cern_control_get_should_serialize_minimum_size(CernControl *self);
+
+gboolean
+cern_control_get_should_serialize_padding(CernControl *self);
+
+gboolean
+cern_control_get_should_serialize_size(CernControl *self);
+
+gboolean
+cern_control_should_serialize_text(CernControl *self);
+
+void
+cern_control_suspend_layout(CernControl *self);
+
+void
+cern_control_update(CernControl *self);
+
+void
+cern_control_update_bounds(CernControl *self);
+
+void
+cern_control_update_bouds_i(CernControl *self, gint32 x, gint32 y,
+                            gint32 width, gint32 height);
+
+void
+cern_control_update_bounds_i_ex(CernControl *self, gint32 x, gint32 y,
+                                gint32 width, gint32 height,
+                                gint32 client_width, gint32 client_height);
+
+void
+cern_control_update_z_order(CernControl *self);
+
+void
+cern_control_update_style(CernControl *self);
+
+void
+cern_control_update_style_core(CernControl *self);
+
+void
+cern_control_on_bounds_update(CernControl *self,
+                              gint32 x, gint32 y,
+                              gint32 width, gint32 height);
+
+void
+cern_control_window_assign_handle(CernControl *self, gpointer handle, gboolean value);
+
+void
+cern_control_window_release_handle(CernControl *self);
+
+void
+cern_control_wm_context_menu(CernControl *self, CernMessage *message);
+
+void
+cern_control_wm_context_menu_ex(CernControl *self,
+                                CernMessage *messasge,
+                                CernControl *source_control);
+
+void
+cern_control_wnd_proc(CernControl *self, CernMessage *message);
+
+gboolean
+cern_control_get_supports_uia_providers(CernControl *self);
+
+gboolean
+cern_control_get_shows_own_keyboard_tool_tip(CernControl *self);
+
+void
+cern_control_on_keyboard_tool_tip_hook(CernControl *self, CernToolTip *tool_tip);
+
+void
+cern_control_on_keyboard_tool_tip_unhook(CernControl *self, CernToolTip *tool_tip);
+
+CernRectangle
+cern_control_get_tool_native_screen_rectangle(CernControl *self);
+
+gboolean
+cern_control_get_allows_keyboard_tool_tip(CernControl *self);
+
+gboolean
+cern_control_get_are_common_navigation_keys_down(void);
+
+CernToolStripControlHost *
+cern_control_get_tool_strip_control_host(CernControl *self);
+
+void
+cern_control_set_tool_strip_control_host(CernControl *self, CernToolStripControlHost *value);
+
+gboolean
+cern_control_get_allows_childer_to_show_tool_tips(CernControl *self);
 
 G_END_DECLS
 

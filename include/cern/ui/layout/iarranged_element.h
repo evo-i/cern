@@ -13,19 +13,19 @@ G_BEGIN_DECLS
 G_DECLARE_INTERFACE (CernIArrangedElement, cern_iarranged_element,
                       CERN, IARRANGED_ELEMENT, GObject)
 
-CernRectangle *
+CernRectangle
 cern_iarranged_element_get_bounds(CernIArrangedElement *self);
 
 void
-cern_iranged_element_set_bounds(CernIArrangedElement *self,
-                                CernRectangle *bounds,
-                                CernBoundsSpecified bounds_specified);
+cern_iarranged_element_set_bounds(CernIArrangedElement *self,
+                                  CernRectangle *bounds,
+                                  CernBoundsSpecified bounds_specified);
 
-CernSize *
+CernSize
 cern_iarranged_element_get_preffered_size(CernIArrangedElement *self,
                                           CernSize *proposed_size);
 
-CernRectangle *
+CernRectangle
 cern_iarranged_elelent_get_diaplay_rectangle(CernIArrangedElement *self);
 
 gboolean
@@ -38,6 +38,9 @@ void
 cern_iarranged_element_perform_layout(CernIArrangedElement *self,
                                       CernIArrangedElement *affected_element,
                                       gchar const *property_name);
+
+CernIArrangedElement *
+cern_iarranged_element_get_container(CernIArrangedElement *self);
 
 GList *
 cern_iarranged_element_get_children(CernIArrangedElement *self);

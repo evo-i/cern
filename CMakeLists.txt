@@ -143,6 +143,9 @@ add_library (cern_ui
     src/ui/native_window.c
     src/ui/control_native_window.c
 
+    src/ui/ambient_properties.c
+    src/ui/common_properties.c
+
     src/ui/property_store.c
     src/ui/window_target.c
     src/ui/component_model/iservice_provider.c)

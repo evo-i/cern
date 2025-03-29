@@ -5,23 +5,125 @@
 #include "cern/drawing/region.h"
 #include "cern/drawing/size.h"
 #include "cern/ui/ambient_properties.h"
+#include "cern/ui/common_properties.h"
 #include "cern/ui/bounds_specified.h"
+#include "cern/ui/padding.h"
 #include "cern/drawing/internal/font_handle_wrapper.h"
+#include "cern/ui/component_model/cancel_event_args.h"
 #include "cern/ui/component_model/control_event_args.h"
 #include "cern/ui/component_model/event_args.h"
 #include "cern/ui/component_model/icomponent.h"
 #include "cern/ui/component_model/invalidate_event_args.h"
+#include "cern/ui/context_menu.h"
 #include "cern/ui/control_collection.h"
 #include "cern/ui/control_styles.h"
 #include "cern/ui/create_params.h"
+#include "cern/ui/cursor.h"
+#include "cern/ui/image_layout.h"
 #include "cern/ui/layout/iarranged_element.h"
-#include "cern/ui/layout/layout_engine.h"
 #include "cern/ui/message.h"
 #include "cern/ui/native_window.h"
+#include "cern/ui/padding.h"
 #include "cern/ui/property_store.h"
 #include "cern/ui/right_to_left.h"
 #include "cern/ui/control_native_window.h"
 #include <Windows.h>
+#include <glib-object.h>
+#include <glib.h>
+#include <glibconfig.h>
+#include <gobject/gmarshal.h>
+#include <minwindef.h>
+#include <windef.h>
+#include <wingdi.h>
+#include <winver.h>
+
+/*
+ * @brief Signal with end _CHANGED 
+ * */
+#define SC(X) SIGNAL_ ## X ## _CHANGED
+
+/*
+ * @brief Signal normal, not like SC signal changed.
+ * */
+#define SN(X) SIGNAL_ ## X
+
+enum {
+  SN(0),
+  SC(AUTOSIZE),
+  SC(BACK_COLOR),
+  SC(BACKGROUND_IMAGE),
+  SC(BACKGROUND_IMAGE_LAYOUT),
+  SC(BINDING_CONTEXT),
+  SC(CAUSES_VALIDATION),
+  SC(CLIENT_SIZE),
+  SC(CONTEXT_MENU),
+  SC(CONTEXT_MENU_STRIP),
+  SC(CURSOR),
+  SC(DOCK),
+  SC(ENABLED),
+  SC(FONT),
+  SC(FORE_COLOR),
+  SC(LOCATION),
+  SC(MARGIN),
+  SC(REGION),
+  SC(RIGHT_TO_LEFT),
+  SC(SIZE),
+  SC(TAB_INDEX),
+  SC(TAB_STOP),
+  SC(TEXT),
+  SC(VISIBLE),
+  SN(CLICK),
+  SN(CONTROL_ADDED),
+  SN(CONTROL_REMOVED),
+  SN(DRAG_DROP),
+  SN(DRAG_ENTER),
+  SN(DRAG_OVER),
+  SN(DRAG_LEAVE),
+  SN(GIVE_FEEDBACK),
+  SN(HANDLE_CREATED),
+  SN(HANDLE_DESTROYED),
+  SN(HELP_REQUESTED),
+  SN(INVALIDATED),
+  SC(PADDING),
+  SN(PAINT),
+  SN(QUERY_CONTINUE_DRAG),
+  SN(QUERY_ACCESSIBILITY_HELP),
+  SN(DOUBLE_CLICK),
+  SN(ENTER),
+  SN(GOT_FOCUS),
+  SN(KEY_DOWN),
+  SN(KEY_PRESS),
+  SN(KEY_UP),
+  SN(LAYOUT),
+  SN(LEAVE),
+  SN(LOST_FOCUS),
+  SN(MOUSE_CLICK),
+  SN(MOUSE_DOUBLE_CLICK),
+  SN(MOUSE_CAPTURE_CHANGED),
+  SN(MOUSE_DOWN),
+  SN(MOUSE_ENTER),
+  SN(MOUSE_LEAVE),
+  SN(DPI_CHANGED_BEFORE_PARENT),
+  SN(DPI_CHANGED_AFTER_PARENT),
+  SN(MOUSE_OVER),
+  SN(MOUSE_MOVE),
+  SN(MOUSE_UP),
+  SN(MOUSE_WHEEL),
+  SN(MOVE),
+  SN(PREVIEW_KEY_DOWN),
+  SN(RESIZE),
+  SN(CHANGE_UI_CUES),
+  SC(STYLE),
+  SC(SYSTEM_COLORS),
+  SN(VALIDATING),
+  SN(VALIDATED),
+  SC(PARENT),
+  SN(N)
+};
+
+static
+guint32
+signals[SIGNAL_N] = { 0 };
 
 #define CERN_UISTATE_FOCUS_CUES_MASK      (0x000F)
 #define CERN_UISTATE_FOCUS_CUES_HIDDES    (0x0001)
@@ -195,6 +297,23 @@ G_DEFINE_TYPE_WITH_CODE(CernControl, cern_control,
     cern_control_win32_window_interface_init));
 
 static
+gpointer
+cern_control_load_library_from_system_path_if_available(char const *library_name) {
+  HANDLE module = NULL;
+  HANDLE kernel32 = GetModuleHandle("kernel32.dll");
+
+  if (kernel32 != NULL) {
+    if (GetProcAddress(kernel32, "AddDllDirectory") != NULL) {
+      module = LoadLibraryEx(library_name, NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    } else {
+      module = LoadLibrary(library_name);
+    }
+  }
+
+  return module;
+}
+
+static
 void
 real_cern_control_set_allow_drop(CernControl *self, gboolean value) {
   if (cern_control_get_state(self, CERN_CONTROL_STATE_ALLOWDROP) != value) {
@@ -202,7 +321,7 @@ real_cern_control_set_allow_drop(CernControl *self, gboolean value) {
   }
 
   if (cern_control_get_is_handle_created(self)) {
-    if (!cern_control_set_drops(self, value)) {
+    if (!cern_control_get_accept_drops(self, value)) {
       cern_control_set_state(self, CERN_CONTROL_STATE_ALLOWDROP, !value);
     }
   }
@@ -260,7 +379,7 @@ real_cern_control_set_auto_size(CernControl *self, gboolean value) {
     }
 
     CernEventArgs *args = cern_event_args_new();
-    cern_control_on_auto_size_changed(self, args);
+    cern_control_on_autosize_changed(self, args);
     g_clear_object(&args);
   }
 }
@@ -347,8 +466,10 @@ cern_control_init(CernControl *self) {
   if (!cern_padding_equals(&default_margin, &margin)) {
     cern_control_set_margin(self, &default_margin);
   }
+  
+  CernPadding def_padding = cern_common_properties_get_default_margin();
 
-  cern_control_set_default_margin(self, cern_common_properties_default_margin());
+  cern_control_set_default_margin(CERN_IARRANGED_ELEMENT(self), &def_padding);
 }
 
 static
@@ -468,6 +589,47 @@ real_cern_control_set_background_image(CernControl *self, CernImage *value) {
 }
 
 static
+CernImageLayout
+real_cern_control_get_background_image_layout(CernControl *self) {
+  CernPropertyStore *store = cern_control_get_properties(self);
+  gboolean found = cern_property_store_contains_object(store, CernPropBackgroundImageLayout);
+
+  if (!found) {
+    return CernImageLayout_Tile;
+  } else {
+    return 
+      (CernImageLayout) cern_property_store_get_integer(store, CernPropBackgroundImageLayout);
+  }
+}
+
+static
+void
+real_cern_control_set_background_image_layout(CernControl *self, CernImageLayout value) {
+  if (cern_control_get_background_image_layout(self) != value) {
+    if (!cern_client_utils_is_valid_enum(value, (gint32) CernImageLayout_None, (gint32) CernImageLayout_Zoom)) {
+      g_critical("%s(...): Imvalid enum value", __func__);
+      return;
+    }
+
+    if (value == CernImageLayout_Center
+        || value == CernImageLayout_Zoom
+        || value == CernImageLayout_Stretch) {
+      cern_control_set_style(self, CernControlStyles_ResizeRedraw, TRUE);
+      if (cern_control_paint_get_is_image_transparent(cern_control_get_background_image(self))) {
+        cern_control_set_double_buffered(self, TRUE);
+      }
+    }
+
+    CernPropertyStore *store = cern_control_get_properties(self);
+    cern_property_store_set_integer(store, CernPropBackgroundImageLayout, (gint32) value);
+
+    CernEventArgs *args = cern_event_args_new();
+    cern_control_on_background_image_layout_changed(self, args);
+    g_clear_object(&args);
+  }
+}
+
+static
 CernBindingContext *
 real_cern_control_get_binding_context(CernControl *self) {
   return cern_control_get_binding_context_internal(self);
@@ -482,10 +644,155 @@ real_cern_control_set_binding_context(CernControl *self, CernBindingContext *val
   g_clear_object(&old_context);
 }
 
+static
 gboolean
 real_cern_control_get_can_access_properties(CernControl *self) {
   (void) self; /* calm down. */
   return TRUE;
+}
+
+static
+CernContextMenu *
+real_cern_control_get_context_menu(CernControl *self) {
+  CernPropertyStore *store = cern_control_get_properties(self);
+  CernContextMenu *context_menu
+    = CERN_CONTEXT_MENU(cern_property_store_get_object(store, CernPropContextMenu));
+
+  return g_object_ref(context_menu);
+}
+
+static
+void
+real_cern_control_set_context_menu(CernControl *self, CernContextMenu *value) {
+  CernPropertyStore *store = cern_control_get_properties(self);
+  CernContextMenu *old_value = cern_property_store_get_object(store, CernPropContextMenu);
+
+  if (old_value != value) {
+    cern_property_store_set_object(store, CernPropContextMenu, value);
+    CernEventArgs *args = cern_event_args_new();
+    cern_control_on_context_menu_changed(self, args);
+    g_clear_object(&args);
+  }
+}
+
+static
+CernContextMenuStrip *
+real_cern_control_get_context_menu_strip(CernControl *self) {
+  CernPropertyStore *store
+    = cern_control_get_properties(self);
+
+  CernContextMenuStrip *menu_strip
+    = cern_property_store_get_object(store, CernPropContextMenuStrip);
+
+  return g_object_ref(menu_strip);
+}
+
+static
+void
+real_cern_control_set_context_menu_strip(CernControl *self, CernContextMenuStrip *value) {
+  CernPropertyStore *store
+    = cern_control_get_properties(self);
+
+  CernContextMenuStrip *old_value
+    = cern_property_store_get_object(store, CernPropContextMenuStrip);
+
+  if (old_value != NULL) {
+    cern_property_store_set_object(store, CernPropContextMenuStrip, value);
+    g_clear_object(&old_value);
+
+    CernEventArgs *args = cern_event_args_new();
+    cern_control_on_context_menu_strip_changed(self, args);
+    g_clear_object(&args);
+  }
+}
+
+static
+CernCreateParams *
+real_cern_control_get_create_params(CernControl *self) {
+  CernControlPrivate *priv = cern_control_get_instance_private(self);
+
+  if (CernNeedToLoadComCtl) {
+    if (GetModuleHandleA("comctl32.dll")
+        || cern_control_load_library_from_system_path_if_available("comctl32.dll")) {
+      CernNeedToLoadComCtl = FALSE;
+    }
+  }
+
+  if (priv->create_params == NULL) {
+    priv->create_params = cern_create_params_new_empty();
+  }
+
+  CernCreateParams *cp = priv->create_params;
+  cern_create_params_set_style(cp, 0);
+  cern_create_params_set_ex_style(cp, 0);
+  cern_create_params_set_title(cp, priv->text);
+
+  cern_create_params_set_x(cp, priv->x);
+  cern_create_params_set_y(cp, priv->y);
+  cern_create_params_set_width(cp, priv->width);
+  cern_create_params_set_height(cp, priv->height);
+
+  cern_create_params_set_style(cp, WS_CLIPCHILDREN);
+
+  if (cern_control_get_style(self, CernControlStyles_ContainerControl)) {
+    gint32 style = cern_create_params_get_ex_style(cp);
+    style |= WS_EX_CONTROLPARENT;
+    cern_create_params_set_ex_style(cp, style);
+  }
+
+  cern_create_params_set_class_style(cp, CS_DBLCLKS);
+
+  if ((priv->state & CERN_CONTROL_STATE_TOPLEVEL) == 0) {
+    CernControl *parent = cern_control_get_parent_internal(self);
+    cern_create_params_set_parent(cp, !priv->parent ? NULL : cern_control_get_internal_handle(parent));
+    cern_create_params_set_style(cp, cern_create_params_get_style(cp) | WS_CHILD | WS_CLIPSIBLINGS);
+  } else {
+    cern_create_params_set_parent(cp, NULL);
+  }
+
+  if (priv->state & CERN_CONTROL_STATE_TABSTOP) {
+    cern_create_params_set_style(cp, cern_create_params_get_style(cp) | WS_TABSTOP);
+  }
+
+  if (priv->state & CERN_CONTROL_STATE_VISIBLE) {
+    cern_create_params_set_style(cp, cern_create_params_get_style(cp) | WS_VISIBLE);
+  }
+
+  if (!cern_control_get_enabled(self)) {
+    cern_create_params_set_style(cp, cern_create_params_get_style(cp) | WS_DISABLED);
+  }
+
+  if (cern_control_get_right_to_left(self) == CernRightToLeft_Yes) {
+    gint32 ex_style = cern_create_params_get_ex_style(cp);
+    ex_style |= (WS_EX_RTLREADING | WS_EX_RIGHT | WS_EX_LEFTSCROLLBAR);
+    cern_create_params_set_ex_style(cp, ex_style);
+  }
+
+  return cp;
+}
+
+static
+void
+real_cern_control_notify_validation_result(CernControl *self, CernCancelEventArgs *args) {
+  cern_control_set_validation_cancelled(self, cern_cancel_event_args_get_cancel(args));
+}
+
+static
+CernCursor *
+real_cern_control_get_cursor(CernControl *self) {
+  if (cern_control_get_state(self, CERN_CONTROL_STATE_USEWAITCURSOR)) {
+    return cern_cursors_get_wait_cursor();
+  }
+
+  CernPropertyStore *store = cern_control_get_properties(self);
+
+  CernCursor *cursor = cern_property_store_get_object(store, CernPropCursor);
+
+  if (cursor != NULL) {
+    return cursor;
+  }
+
+
 }
 
 static
@@ -1451,6 +1758,101 @@ real_cern_control_init_layout(CernControl *self) {
 
 static
 void
+real_cern_control_on_create_control(CernControl *self) {
+  (void) self;
+  /* nothing here */
+}
+
+static
+void
+cern_control_set_window_font(CernControl *self) {
+  cern_control_send_message(self, WM_SETFONT, cern_control_get_font_handle(self), NULL);
+}
+
+static
+void
+real_cern_control_on_handle_created(CernControl *self, CernEventArgs *args) {
+  CernControlPrivate *priv = cern_control_get_instance_private(self);
+
+  if (cern_control_get_is_handle_created(self)) {
+    if (!cern_control_get_style(self, CernControlStyles_UserPaint)) {
+      cern_control_set_window_font(self);
+    }
+
+    if (cern_dpi_helper_enable_dpi_changed_message_handling()
+        && !CERN_IS_WINDOW(self)) {
+      gint32 old = priv->device_dpi;
+      priv->device_dpi = (gint32) GetDpiForWindow((HWND) cern_control_get_handle(self));
+      if (old != priv->device_dpi) {
+        cern_control_rescale_constants_for_dpi(self, old, priv->device_dpi);
+      }
+    }
+
+    cern_control_set_accept_drops(self, cern_control_get_allow_drop(self));
+
+    CernPropertyStore *store
+      = cern_control_get_properties(self);
+
+    CernRegion *region
+      = cern_property_store_get_object(self, CernPropRegion);
+
+    if (region != NULL) {
+      gpointer region_handle
+        = cern_control_get_h_rgn_internal(self, region);
+
+      SetWindowRgn((HWND) cern_control_get_handle(self),
+                   (HRGN) region_handle,
+                   IsWindowVisible((HWND) cern_control_get_handle(self)));
+
+      if (region_handle != NULL) {
+        DeleteObject((HGDIOB) region_handle);
+      }
+    }
+
+    gpointer handle = cern_control_get_handle(self);
+
+    if (priv->text != NULL
+        && g_utf8_strlen(priv->text, 0) != 0) {
+      SetWindowTextA((HWND) handle, priv->text);
+    }
+
+    if (!CERN_IS_SCROLLABLE_CONTROL(self) 
+        && !cern_control_get_is_mirrored(self)
+        && cern_control_get_state2(self, CERN_CONTROL_STATE2_SETSCROLLPOS)
+        && !cern_control_get_state2(self, CERN_CONTROL_STATE2_HAVEINVOKED)) {
+      /*cern_control_begin_invoke(cern_control_on_set_scroll_position,)*/
+
+      cern_control_set_state2(self, CERN_CONTROL_STATE2_HAVEINVOKED, TRUE);
+      cern_control_set_state2(self, CERN_CONTROL_STATE2_SETSCROLLPOS, FALSE);
+    }
+
+    g_signal_emit(self, CernControlSignals[SIGNAL_HANDLE_CREATED], 0, args);
+
+
+    if (cern_control_get_is_handle_created(self)) {
+      if (cern_control_get_state(self, CERN_CONTROL_STATE_THREADMARSHALLPENDING)) {
+        PostMessageA((HWND) cern_control_get_handle(self),
+                     CernMessageThreadCallback,
+                     (WPARAM) 0, (LPARAM) 0);
+        cern_control_set_state(self, CERN_CONTROL_STATE_THREADMARSHALLPENDING, FALSE);
+      }
+    }
+  }
+  g_signal_emit(self, CernControlSignals[SIGNAL_HANDLE_CREATED], 0, args);
+
+
+  if (cern_control_get_is_handle_created(self)) {
+    if (cern_control_get_state(self, CERN_CONTROL_STATE_THREADMARSHALLPENDING)) {
+      PostMessageA((HWND) cern_control_get_handle(self),
+                   CernMessageThreadCallback,
+                   (WPARAM) 0, (LPARAM) 0);
+      cern_control_set_state(self, CERN_CONTROL_STATE_THREADMARSHALLPENDING, FALSE);
+    }
+  }
+}
+
+static
+void
 cern_control_finalize(GObject *object) {
   CernControl *self = CERN_CONTROL(object);
   CernControlPrivate *priv;
@@ -1463,6 +1865,13 @@ cern_control_finalize(GObject *object) {
   G_OBJECT_CLASS(cern_control_parent_class)->finalize(object);
 }
 
+#define svf_ex(klass, fn) klass##->##fn = real_cern_control_##fn
+
+/*
+ * set virtual function, the object klass must be named as klass
+ * */
+#define svf(fn) svf_ex(klass, fn) 
+
 static
 void
 cern_control_class_init(CernControlClass *klass) {
@@ -1472,109 +1881,229 @@ cern_control_class_init(CernControlClass *klass) {
   cm_klass = CERN_COMPONENT_MODEL_COMPONENT_CLASS(klass);
   o_klass = G_OBJECT_CLASS(klass);
 
-  klass->set_allow_drop = real_cern_control_set_allow_drop;
-  klass->get_allow_drop = real_cern_control_get_allow_drop;
+  svf(set_allow_drop);
+  svf(get_allow_drop);
 
-  klass->get_anchor = real_cern_control_get_anchor;
-  klass->set_anchor = real_cern_control_set_anchor;
+  svf(get_anchor);
+  svf(set_anchor);
 
-  klass->get_auto_size = real_cern_control_get_auto_size;
-  klass->set_auto_size = real_cern_control_set_auto_size;
+  svf(get_auto_size);
+  svf(set_auto_size);
 
-  klass->get_layout_engine = real_cern_control_get_layout_engine;
+  svf(get_layout_engine);
 
-  klass->get_back_color = real_cern_control_get_back_color;
-  klass->set_back_color = real_cern_control_set_back_color;
+  svf(get_back_color);
+  svf(set_back_color);
 
-  klass->get_background_image = real_cern_control_get_background_image;
-  klass->set_background_image = real_cern_control_set_background_image;
+  svf(get_background_image);
+  svf(set_background_image);
 
-  klass->get_binding_context = real_cern_control_get_binding_context;
-  klass->set_binding_context = real_cern_control_set_binding_context;
+  svf(get_background_image_layout);
+  svf(set_background_image_layout);
 
-  klass->get_can_access_properties
-    = real_cern_control_get_can_access_properties;
+  svf(get_binding_context);
+  svf(set_binding_context);
 
-  klass->get_double_buffered = real_cern_control_get_double_buffered;
-  klass->set_double_buffered = real_cern_control_set_double_buffered;
+  svf(get_can_access_properties);
+
+  svf(get_context_menu);
+  svf(set_context_menu);
+
+  svf(get_context_menu_strip);
+  svf(set_context_menu_strip);
+  
+  svf(get_create_params);
+
+  svf(notify_validation_result);
+
+  svf(get_cursor);
+  svf(set_cursor);
+
+  svf(get_default_cursor);
+  svf(get_default_margins);
+  svf(get_default_maximum_size);
+  svf(get_default_minimum_size);
+  svf(get_default_padding);
+  svf(get_default_size);
+  
+  svf(get_display_rectangle);
+
+  svf(get_dock);
+  svf(set_dock);
+
+  svf(get_double_buffered);
+  svf(set_double_buffered);
 
   /* TODO: Not implemented!!! */
 
-  klass->get_focused = real_cern_control_get_focused;
+  svf(get_focused);
 
-  klass->get_font = real_cern_control_get_font;
-  klass->set_font = real_cern_control_set_font;
+  svf(get_font);
+  svf(set_font);
 
-  klass->get_fore_color = real_cern_control_get_fore_color;
-  klass->set_fore_color = real_cern_control_set_fore_color;
+  svf(get_fore_color);
+  svf(set_fore_color);
 
-  klass->get_preferred_size = real_cern_control_get_preferred_size;
-  klass->get_preferred_size_core = real_cern_control_get_preferred_size_core;
+  svf(get_preferred_size);
+  svf(get_preferred_size_core);
 
-  klass->get_has_children = real_cern_control_get_has_children;
+  svf(get_has_children);
 
-  klass->get_is_container_control = real_cern_control_get_is_container_control;
+  svf(get_is_container_control);
 
-  klass->get_maximum_size = real_cern_control_get_maximum_size;
-  klass->set_maximum_size = real_cern_control_set_maximum_size;
+  svf(get_maximum_size);
+  svf(set_maximum_size);
+  
+  svf(get_minimum_size);
+  svf(set_minimum_size);
 
-  klass->get_minimum_size = real_cern_control_get_minimum_size;
-  klass->set_minimum_size = real_cern_control_set_minimum_size;
+  svf(get_parent_internal);
+  svf(set_parent_internal);
 
-  klass->get_parent_internal = real_cern_control_get_parent_internal;
-  klass->set_parent_internal = real_cern_control_set_parent_internal;
+  svf(add_reflect_child);
+  svf(remove_reflect_child);
 
-  klass->add_reflect_child = real_cern_control_add_reflect_child;
-  klass->remove_reflect_child = real_cern_control_remove_reflect_child;
+  svf(get_render_transparency_with_visual_styles);
 
-  klass->get_render_transparency_with_visual_styles
-    = real_cern_control_get_render_transparency_with_visual_styles;
+  svf(get_right_to_left);
+  svf(set_right_to_left);
 
-  klass->get_right_to_left = real_cern_control_get_right_to_left;
-  klass->set_right_to_left = real_cern_control_set_right_to_left;
+  svf(get_scale_children);
 
-  klass->get_scale_children = real_cern_control_get_scale_children;
+  svf(get_text);
+  svf(set_text);
 
-  klass->get_text = real_cern_control_get_text;
-  klass->set_text = real_cern_control_set_text;
+  svf(get_show_keyboard_cues);
+  svf(get_show_focus_cues);
 
-  klass->get_show_keyboard_cues
-    = real_cern_control_get_show_keyboard_cues;
-  klass->get_show_focus_cues
-    = real_cern_control_get_show_focus_cues;
+  svf(get_show_params);
 
-  klass->get_show_params = real_cern_control_get_show_params;
+  svf(get_window_text);
+  svf(set_window_text);
 
-  klass->get_window_text = real_cern_control_get_window_text;
-  klass->set_window_text = real_cern_control_set_window_text;
+  svf(assign_parent);
+  svf(can_process_mnemonic);
+  svf(can_select_core);
+  svf(create_handle);
+  svf(def_wnd_proc);
+  svf(destroy_handle);
+  svf(focus_internal);
+  svf(apply_bounds_constraints);
+  svf(get_scaled_bounds);
+  svf(get_visible_core);
+  svf(get_first_child_control_in_tab_order);
+  svf(init_layout);
+  svf(initialize_dc_for_wm_ctl_color);
+  svf(is_input_char);
+  svf(is_input_key);
+  svf(notify_invalidate);
+  svf(notify_validating);
+  svf(notify_validated);
+  svf(on_background_color_changed);
+  svf(on_background_image_changed);
+  svf(on_background_image_layout_changed);
+  svf(on_binding_context_changed); 
+  svf(on_causes_validation_changed);
+  svf(on_child_layout_resuming);
+  svf(on_context_menu_strip_changed);
+  svf(on_cursor_changed);
+  svf(on_dock_changed);
+  svf(on_enabled_changed);
+  svf(on_font_changed);
+  svf(on_fore_color_changed);
+  svf(on_right_to_left_changed);
+  svf(on_notify_message);
+  svf(on_parent_back_color_changed);
+  svf(on_parent_background_image_changed);
+  svf(on_parent_binding_context_changed);
+  svf(on_parent_cursor_changed);
+  svf(on_parent_enabled_changed);
+  svf(on_parent_font_changed);
+  svf(on_parent_handle_recreated);
+  svf(on_parent_handle_recreating);
+  svf(on_parent_fore_color_changed);
+  svf(on_parent_right_to_left_changed);
+  svf(on_parent_visible_changed);
+  svf(on_parent_became_invisible);
+  svf(on_paint);
+  svf(on_tab_index_changed);
+  svf(on_tab_stop_changed);
+  svf(on_text_changed);
+  svf(on_visible_changed);
+  svf(on_parent_changed);
+  svf(on_click);
+  svf(on_client_size_changed);
+  svf(on_control_added);
+  svf(on_control_removed);
+  svf(on_create_control);
+  svf(on_handle_created);
+  svf(auto_size_changed);
+  svf(back_color_changed);
+  svf(background_image_changed);
+  svf(background_image_layout_changed);
+  svf(binding_context_changed);
+  svf(cause_validation_changed);
+  svf(client_size_changed);
+  svf(on_context_menu_changed);
+  svf(context_menu_strip_changed);
+  svf(validation_result);
+  svf(cursor_changed);
+  svf(dock_changed);
+  svf(enabled_changed);
+  svf(font_changed);
+  svf(fore_color_changed);
+  svf(location_changed);
+  svf(margin_changed);
+  svf(region_changed);
+  svf(right_to_left_changed);
+  svf(size_changed);
+  svf(tab_index_changed);
+  svf(tab_stop_changed);
+  svf(text_changed);
+  svf(visible_changed);
+  svf(click);
+  svf(control_added);
+  svf(control_removed);
+  svf(handle_created);
+  svf(handle_destroyed);
+  svf(invalidated);
+  svf(padding_changed);
+  svf(paint);
+  svf(double_click);
+  svf(enter);
+  svf(got_focus);
+  svf(key_down);
+  svf(key_press);
+  svf(key_up);
+  svf(layout);
+  svf(leave);
+  svf(lost_focus);
+  svf(mouse_click);
+  svf(mouse_double_click);
+  svf(mouse_capture_chanched);
+  svf(mouse_down);
+  svf(mouse_enter);
+  svf(mouse_leave);
+  svf(dpi_changed_before_parent);
+  svf(dpi_changed_after_parent);
+  svf(mouse_hover);
+  svf(mouse_move);
+  svf(mouse_up);
+  svf(mouse_wheel);
+  svf(move);
+  svf(preview_key_down);
+  svf(resize);
+  svf(change_ui_cues);
+  svf(style_changed);
+  svf(system_color_changed);
+  svf(validating);
+  svf(validated);
+  svf(parent_changed);
 
-  klass->assign_parent = real_cern_control_assign_parent;
-
-  klass->can_process_mnemonic = real_cern_control_can_process_mnemonic;
-
-  klass->can_select_core = real_cern_control_can_select_core;
-
-  klass->create_handle = real_cern_control_create_handle;
-
-  klass->def_wnd_proc = real_cern_control_def_wnd_proc;
-
-  klass->destroy_handle = real_cern_control_destroy_handle;
-
-  klass->focus_internal = real_cern_control_focus_internal;
-
-  klass->apply_bounds_constraints
-    = real_cern_control_apply_bounds_constraints;
-
-  klass->get_scaled_bounds = real_cern_control_get_scaled_bounds;
-
-  klass->get_visible_core = real_cern_control_get_visible_core;
-
-  klass->init_layout = real_cern_control_init_layout;
-
+  /* CLASS */
   /* implemented */
-  cm_klass->can_raise_events = real_cern_control_can_raise_events;
-
-  o_klass->finalize = cern_control_finalize;
+  svf_ex(cm_klass, can_raise_events);
+  svf_ex(o_klass, finalize);
 }
 
 CernControl *
@@ -2182,7 +2711,7 @@ cern_control_get_context_menu_strip(CernControl *self) {
 void
 cern_control_set_context_menu_strip(CernControl *self, CernContextMenuStrip *value) {
   CernControlClass *klass = CERN_CONTROL_GET_CLASS(self);
-  kalss->set_context_menu_strip(self, value);
+  klass->set_context_menu_strip(self, value);
 }
 
 CernControlCollection *
@@ -2209,85 +2738,10 @@ cern_control_get_created(CernControl *self) {
   return (priv->state & CERN_CONTROL_STATE_CREATED) != 0;
 }
 
-static
-gpointer
-cern_control_load_library_from_system_path_if_available(char const *library_name) {
-  HANDLE module = NULL;
-  HANDLE kernel32 = GetModuleHandle("kernel32.dll");
-
-  if (kernel32 != NULL) {
-    if (GetProcAddress(kernel32, "AddDllDirectory") != NULL) {
-      module = LoadLibraryEx(library_name, NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
-    } else {
-      module = LoadLibrary(library_name);
-    }
-  }
-
-  return module;
-}
-
 CernCreateParams *
 cern_control_get_create_params(CernControl *self) {
-  CernControlPrivate *priv = cern_control_get_instance_private(self);
-
-  if (CernNeedToLoadComCtl) {
-    if (GetModuleHandle("comctl32.dll")
-        || cern_control_load_library_from_system_path_if_available("comctl32.dll")) {
-      CernNeedToLoadComCtl = FALSE;
-    }
-  }
-
-  if (priv->create_params == NULL) {
-    priv->create_params = cern_create_params_new_empty();
-  }
-
-  CernCreateParams *cp = priv->create_params;
-  cern_create_params_set_style(cp, 0);
-  cern_create_params_set_ex_style(cp, 0);
-  cern_create_params_set_caption(cp, priv->text);
-
-  cern_create_params_set_x(cp, priv->x);
-  cern_create_params_set_y(cp, priv->y);
-  cern_create_params_set_width(cp, priv->width);
-  cern_create_params_set_height(cp, priv->height);
-
-  cern_create_params_set_style(cp, WS_CLIPCHILDREN);
-
-  if (cern_control_get_style(self, CernControlStyles_ContainerControl)) {
-    gint32 style = cern_create_params_get_ex_style(cp);
-    style |= WS_EX_CONTROLPARENT;
-    cern_create_params_set_ex_style(cp, style);
-  }
-
-  cern_create_params_set_class_style(cp, CS_DBLCLKS);
-
-  if ((priv->state & CERN_CONTROL_STATE_TOPLEVEL) == 0) {
-    CernControl *parent = cern_control_get_parent_internal(self);
-    cern_create_params_set_parent(self, !priv->parent ? NULL : cern_control_get_internal_handle(parent));
-    cern_create_params_set_style(cp, cern_create_params_get_style(cp) | WS_CHILD | WS_CLIPSIBLINGS);
-  } else {
-    cern_create_params_set_parent(cp, NULL);
-  }
-
-  if (priv->state & CERN_CONTROL_STATE_TABSTOP) {
-    cern_create_params_set_style(cp, cern_create_params_get_style(cp) | WS_TABSTOP);
-  }
-
-  if (priv->state & CERN_CONTROL_STATE_VISIBLE) {
-    cern_create_params_set_style(cp, cern_create_params_get_style(cp) | WS_VISIBLE);
-  }
-
-  if (!cern_control_get_enabled(self)) {
-    cern_create_params_set_style(cp, cern_create_params_get_style(cp) | WS_DISABLED);
-  }
-
-  if (cern_control_get_right_to_left(self) == CernRightToLeft_Yes) {
-    gint32 ex_style = cern_create_params_get_ex_style(cp);
-    ex_style |= (WS_EX_RTLREADING | WS_EX_RIGHT | WS_EX_LEFTSCROLLBAR);
-    cern_create_params_set_ex_style(cp, ex_style);
-  }
-
-  return cp;
+  CernControlClass *klass = CERN_CONTROL_GET_CLASS(self);
+  return klass->get_create_params(self);
 }
 
 
