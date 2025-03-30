@@ -11,6 +11,7 @@
 
 #include <Windows.h>
 #include <gdiplus.h>
+#include <gdiplus/gdiplusenums.h>
 
 #define NGDI_HANDLE(PTR)
 
@@ -289,7 +290,7 @@ cern_graphics_flush_with_intention(CernGraphics *self,
                                    CernFlushIntention intention) {
   GpStatus status;
 
-  status = GdipFlush(self->handle, intention);
+  status = GdipFlush(self->handle, (FlushIntention) intention);
 
   if (status!= Ok) {
     g_warning("cern_graphics_flush_with_intention(...): GdipFlush() failed");
@@ -3271,7 +3272,7 @@ cern_graphics_exclude_clip_region(CernGraphics *self, CernRegion *region) {
     = GdipSetClipRegion(self->handle, native, (CombineMode) CernCombineMode_Exclude);
 
   if (status != Ok) {
-    g_critical("cern_graphics_exclude_clip_region(...): GdipSetClipRegion() Failed: %lu", status);
+    g_critical("cern_graphics_exclude_clip_region(...): GdipSetClipRegion() Failed: %u", status);
   }
 }
 

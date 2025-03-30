@@ -1,9 +1,11 @@
 #include "cern/drawing/icon.h"
 #include "cern/core/icloneable.h"
 #include "cern/drawing/rectangle.h"
-#include "cern/drawing/internal/native_gdi_object.h"
 #include "cern/core/windows/handle.h"
 
+#include <glib-object.h>
+#include <glib.h>
+#include <glibconfig.h>
 #include <unknwn.h>
 
 #include "cern/drawing/size.h"
@@ -510,7 +512,7 @@ cern_icon_extract_associated_icon_with_index(gchar const *path, gint32 index) {
   g_free(wide_path);
 
   if (handle == NULL) {
-    g_critical("cern_icon_extract_associated_icon_with_index(): ExtractAssociatedIconW() Failed: %d", GetLastError());
+    g_critical("cern_icon_extract_associated_icon_with_index(): ExtractAssociatedIconW() Failed: %lu", GetLastError());
     return NULL;
   }
 
@@ -589,6 +591,8 @@ cern_icon_has_png_signature(CernIcon *self) {
 
     return self->is_best_image_png;
   }
+
+  return FALSE;
 }
 
 CernIcon *
@@ -775,10 +779,12 @@ cern_icon_to_bitmap(CernIcon *self) {
 CernIcon *
 cern_icon_new_from_h_icon(gpointer h_icon) {
   g_return_val_if_fail(h_icon != NULL, NULL);
-
+  g_critical("NOT IMPLEMENTED!!!");
+  return NULL;
 }
 
 void
 cern_icon_unref(CernIcon *self) {
   g_return_if_fail(CERN_IS_ICON(self));
+  g_object_unref(self);
 }

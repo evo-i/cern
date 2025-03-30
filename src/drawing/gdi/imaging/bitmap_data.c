@@ -89,3 +89,4 @@ void
 cern_bitmap_data_set_pixel_format(CernBitmapData *self, CernPixelFormat pixel_format) {
   self->data.PixelFormat = pixel_format;
 }
+

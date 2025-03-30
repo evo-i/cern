@@ -1,5 +1,7 @@
 #include "cern/drawing/pen.h"
 #include "cern/core/icloneable.h"
+#include "cern/drawing/2d/line_join.h"
+#include "cern/drawing/2d/pen_type.h"
 #include "cern/drawing/graphics_unit.h"
 #include "cern/drawing/internal/native_gdi_object.h"
 
@@ -195,7 +197,7 @@ cern_pen_set_line_cap(CernPen *self, CernLineCap start_cap,
     = GdipSetPenLineCap197819(self->pen,
                               (GpLineCap) start_cap,
                               (GpLineCap) end_cap,
-                              (GpLineCap) dash_cap);
+                              (GpDashCap) dash_cap);
 
   if (status != Ok) {
     g_critical("cern_pen_set_line_cap(): GdipSetPenLineCap197819() failed");
@@ -295,6 +297,8 @@ cern_pen_get_line_join(CernPen *self) {
     g_critical("cern_pen_get_line_join(): GdipGetPenLineJoin() failed");
     return CernLineJoin_Miter;
   }
+
+  return (CernLineJoin) line_join;
 }
 
 void
@@ -380,6 +384,8 @@ cern_pen_get_alignment(CernPen *self) {
     g_critical("cern_pen_get_alignment(): GdipGetPenMode() failed");
     return CernPenAlignment_Center;
   }
+
+  return (CernPenAlignment) alignment;
 }
 
 void
@@ -487,7 +493,7 @@ cern_pen_get_pen_type(CernPen *self) {
     return CernPenType_SolidColor;
   }
 
-  return pen_type;
+  return (CernPenType) pen_type;
 }
 
 CernColor
@@ -648,3 +654,4 @@ cern_pen_set_compound_array(CernPen *self, gfloat const *array, gint32 count) {
     g_critical("cern_pen_set_compound_array(): GdipSetPenCompoundArray() failed");
   }
 }
+

@@ -52,3 +52,4 @@ cern_size_equals(CernSize *first, CernSize *second) {
     first->width == second->width
       && first->height == second->height;
 }
+

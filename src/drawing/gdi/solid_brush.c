@@ -148,3 +148,4 @@ cern_solid_brush_set_native(CernSolidBrush *self, gpointer brush) {
   native_object = CERN_NATIVE_GDI_OBJECT(self);
   cern_native_gdi_object_set_native_handle(native_object, brush);
 }
+

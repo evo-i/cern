@@ -98,6 +98,8 @@ cern_color_translator_to_ole(CernColor *self) {
         return 0x80000006;
       case CernKnownColor_WindowText:
         return 0x80000008;
+      default:
+        return cern_color_translator_to_win32(self);
     }
   }
 

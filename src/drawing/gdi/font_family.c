@@ -113,7 +113,8 @@ cern_font_family_new(gchar const *name) {
 CernFontFamily *
 cern_font_family_new_with_collection(gchar const *name,
                                      CernFontCollection *collection) {
-
+  g_critical("Not IMPLEMENTED!!!");
+  return NULL;
 }
 
 CernFontFamily *
@@ -170,7 +171,8 @@ cern_font_family_get_name(CernFontFamily *self) {
 
 GPtrArray *
 cern_font_family_get_families(void) {
-
+  g_critical("NOT IMPLEMENTED!!!");
+  return NULL;
 }
 
 CernFontFamily *

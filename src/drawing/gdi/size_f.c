@@ -44,3 +44,4 @@ void
 cern_size_f_set_height(CernSizeF *self, gfloat height) {
   self->height = height;
 }
+

@@ -34,7 +34,7 @@ return
 
 gint32
 cern_point_get_x(CernPoint *self) {
-  self->x;
+  return self->x;
 }
 
 gint32

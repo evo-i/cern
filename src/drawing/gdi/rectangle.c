@@ -151,6 +151,7 @@ cern_rectangle_contains_point(CernRectangle *self, CernPoint *point) {
 gboolean
 cern_rectangle_contains_rectangle(CernRectangle *self, CernRectangle *rectangle) {
   g_critical("Not implemented");
+  return FALSE;
 }
 
 gboolean
@@ -172,6 +173,7 @@ cern_rectangle_intersect(CernRectangle *self, CernRectangle *rectangle) {
 gboolean
 cern_rectangle_intersect_with(CernRectangle *self, CernRectangle *rectangle) {
   g_critical("Not implemented");
+  return FALSE;
 }
 
 /* inflate */
@@ -187,3 +189,4 @@ cern_rectangle_inflate_with_size(CernRectangle *self, CernSize *size) {
   self->width += cern_size_get_width(size);
   self->height += cern_size_get_height(size);
 }
+

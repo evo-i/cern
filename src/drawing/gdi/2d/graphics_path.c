@@ -4,6 +4,8 @@
 
 #include <Windows.h>
 #include <gdiplus.h>
+#include <gdiplus/gdiplusenums.h>
+#include <glibconfig.h>
 
 struct _CernGraphicsPath {
   GObject parent_instance;
@@ -63,7 +65,7 @@ cern_graphics_path_new_from_native_handle(gpointer handle) {
 CernGraphicsPath *
 cern_graphics_path_new(void) {
   return
-    cern_graphics_path_new_fill_mode(FillModeAlternate);
+    cern_graphics_path_new_fill_mode(CernFillMode_Alternate);
 }
 
 CernGraphicsPath *
@@ -72,7 +74,7 @@ cern_graphics_path_new_fill_mode(CernFillMode fill_mode) {
   GpPath *path;
   GpStatus status;
 
-  status = GdipCreatePath(fill_mode, &path);
+  status = GdipCreatePath((FillMode) fill_mode, &path);
 
   if (status != Ok) {
     g_critical("cern_graphics_path_new_fill_mode(...): GdipCreatePath() failed: %d", status);
@@ -119,6 +121,8 @@ cern_graphics_path_new_points_fill_mode_f(CernPointF *points,
     local_points[i].X = points[i].x;
     local_points[i].Y = points[i].y;
   }
+
+  return self;
 }
 
 CernGraphicsPath *
@@ -129,6 +133,8 @@ cern_graphics_path_new_points_fill_mode(CernPoint *points,
   g_return_val_if_fail(points != NULL, NULL);
   g_return_val_if_fail(points_count != 0, NULL);
   g_return_val_if_fail(types != NULL, NULL);
+
+  return NULL;
 }
 
 CernGraphicsPath *
