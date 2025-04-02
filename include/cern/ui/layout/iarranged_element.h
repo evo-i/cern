@@ -26,7 +26,7 @@ cern_iarranged_element_get_preffered_size(CernIArrangedElement *self,
                                           CernSize *proposed_size);
 
 CernRectangle
-cern_iarranged_elelent_get_diaplay_rectangle(CernIArrangedElement *self);
+cern_iarranged_element_get_display_rectangle(CernIArrangedElement *self);
 
 gboolean
 cern_iarranged_element_participates_in_layout(CernIArrangedElement *self);
@@ -42,7 +42,7 @@ cern_iarranged_element_perform_layout(CernIArrangedElement *self,
 CernIArrangedElement *
 cern_iarranged_element_get_container(CernIArrangedElement *self);
 
-GList *
+GPtrArray *
 cern_iarranged_element_get_children(CernIArrangedElement *self);
 
 G_END_DECLS

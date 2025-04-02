@@ -7,6 +7,7 @@
 #include "cern/ui/ambient_properties.h"
 #include "cern/ui/common_properties.h"
 #include "cern/ui/bounds_specified.h"
+#include "cern/ui/layout/layout_engine.h"
 #include "cern/ui/padding.h"
 #include "cern/drawing/internal/font_handle_wrapper.h"
 #include "cern/ui/component_model/cancel_event_args.h"
@@ -21,12 +22,16 @@
 #include "cern/ui/cursor.h"
 #include "cern/ui/image_layout.h"
 #include "cern/ui/layout/iarranged_element.h"
+#include "cern/ui/layout/default_layout.h"
+#include "cern/ui/common_properties.h"
 #include "cern/ui/message.h"
 #include "cern/ui/native_window.h"
 #include "cern/ui/padding.h"
 #include "cern/ui/property_store.h"
 #include "cern/ui/right_to_left.h"
 #include "cern/ui/control_native_window.h"
+#include "cern/ui/property_names.h"
+#include "cern/ui/layout/layout_transaction.h"
 #include <Windows.h>
 #include <glib-object.h>
 #include <glib.h>
@@ -337,13 +342,13 @@ real_cern_control_get_allow_drop(CernControl *self) {
 static
 CernAnchorStyles
 real_cern_control_get_anchor(CernControl *self) {
-  return cern_default_layout_get_anchor(self);
+  return cern_default_layout_get_anchor(CERN_IARRANGED_ELEMENT(self));
 }
 
 static
 void
 real_cern_control_set_anchor(CernControl *self, CernAnchorStyles value) {
-  cern_default_layout_set_anchor(self, value);
+  cern_default_layout_set_anchor(CERN_IARRANGED_ELEMENT(self), value);
 }
 
 static
@@ -368,7 +373,7 @@ real_cern_control_set_auto_size(CernControl *self, gboolean value) {
     if (cern_control_get_parent_internal(self) != NULL) {
       CernControl *parent = cern_control_get_parent_internal(self);
       CernLayoutEngine *layout_engine = cern_control_get_layout_engine(parent);
-      if (value && layout_engine == cern_default_layout_get_instance()) {
+      if (value && layout_engine == CERN_LAYOUT_ENGINE(cern_default_layout_get_instance())) {
         cern_layout_engine_init_layout(layout_engine, G_OBJECT(parent),
                                        CernBoundsSpecified_Size);
       }
@@ -421,7 +426,7 @@ real_cern_control_set_auto_scroll_offset(CernControl *self, CernPoint *value) {
 static
 CernLayoutEngine *
 real_cern_control_get_layout_engine(CernControl *self) {
-  return cern_default_layout_get_instance();
+  return CERN_LAYOUT_ENGINE(cern_default_layout_get_instance());
 }
 
 static
@@ -902,9 +907,9 @@ real_cern_control_set_font(CernControl *self, CernFont *value) {
                                         (value == NULL) ? -1 ? cern_font_get_height(value));
       }
 
-      CernLayoutTransation *lt
-        = cern_layout_transacation_new(cern_control_get_parent_internal(self),
-                                       CERN_IARRANGED_ELEMENT(sefl),
+      CernLayoutTransaction *lt
+        = cern_layout_transaction_new(cern_control_get_parent_internal(self),
+                                          CERN_IARRANGED_ELEMENT(sefl),
                                        cern_property_names_font());
       CernEventArgs *args = cern_event_args_new();
       cern_control_on_font_changed(self, args);
@@ -924,7 +929,7 @@ CernColor
 real_cern_control_get_fore_color(CernControl *self) {
   CernPropertyStore *store = cern_control_get_properties(self);
 
-  CernColor color = cern_property_store_get_color(store, CernPropForeColor);
+  CernColor color = *cern_property_store_get_color(store, CernPropForeColor);
 
   if (!cern_color_is_empty(&color)) {
     return color;
@@ -978,14 +983,14 @@ real_cern_control_get_preferred_size(CernControl *self,
 
   if (cern_control_get_state(self, CERN_CONTROL_STATE_DISPOSED
                                     | CERN_CONTROL_STATE_DISPOSING)) {
-    pref_size = cern_common_properties_x_get_preferred_size_cached(self);
+    pref_size = cern_common_properties_x_get_preferred_size_cache(CERN_IARRANGED_ELEMENT(self));
   } else {
     prop_size = cern_layout_utils_convert_zero_to_unbounded(proposed_size);
 
     prop_size = cern_control_apply_size_constraints_size(self, &prop_size);
 
     CernSize cached_size
-        = cern_common_properties_x_get_preferred_size_cached(self);
+      = cern_common_properties_x_get_preferred_size_cache(CERN_IARRANGED_ELEMENT(self));
 
       CernSize max_size = cern_layout_utils_max_size();
 
@@ -1009,7 +1014,7 @@ real_cern_control_get_preferred_size(CernControl *self,
 
     if (cern_control_get_state2(self, CERN_CONTROL_STATE2_USEPREFERREDSIZECACHE)
         && cern_size_equals(proposed_size, &max_size)) {
-      cern_common_properties_x_get_preferred_size_cached(self, &pref_size);
+      cern_common_properties_x_set_preferred_size_cache(self, &pref_size);
     }
   }
 

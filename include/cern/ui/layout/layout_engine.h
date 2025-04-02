@@ -10,7 +10,7 @@
 
 G_BEGIN_DECLS
 
-#define CERN_LAYOUT_ENGINE_TYPE (cern_layout_engine_get_type())
+#define CERN_TYPE_LAYOUT_ENGINE (cern_layout_engine_get_type())
 
 G_DECLARE_DERIVABLE_TYPE(CernLayoutEngine, cern_layout_engine, CERN, LAYOUT_ENGINE, GObject)
 

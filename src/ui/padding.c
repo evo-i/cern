@@ -53,6 +53,15 @@ cern_padding_set_bottom(CernPadding *self, gint32 bottom) {
   self->bottom = bottom;
 }
 
+void
+cern_padding_set_all(CernPadding *self, gint32 value) {
+  self->bottom 
+    = self->top 
+    = self->right 
+    = self->left 
+    = value;
+}
+
 gint32
 cern_padding_get_top(CernPadding *self) {
   return self->top;

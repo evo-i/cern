@@ -21,7 +21,7 @@ void
 cern_bit_vector32_set(CernBitVector32 *vector, gint32 bit);
 
 gint32
-cern_bit_vector32_section_get(CernBitVector32 *vector, CernBitVector32Section sector);
+cern_bit_vector32_section_get(CernBitVector32 *vector, CernBitVector32Section section);
 
 void
 cern_bit_vector32_section_set(CernBitVector32 *vector, CernBitVector32Section section, gint32 value);

@@ -45,6 +45,9 @@ cern_padding_set_right(CernPadding *self, gint32 right);
 void
 cern_padding_set_bottom(CernPadding *self, gint32 bottom);
 
+void
+cern_padding_set_all(CernPadding *self, gint32 vlaue);
+
 gint32
 cern_padding_get_top(CernPadding *self);
 

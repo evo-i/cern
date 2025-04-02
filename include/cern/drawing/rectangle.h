@@ -1,3 +1,4 @@
+#include <glib.h>
 #ifndef CERN_RECTANGLE_H
 #define CERN_RECTANGLE_H 1
 
@@ -14,6 +15,17 @@ typedef struct _CernRectangle {
   gint32 width;
   gint32 height;
 } CernRectangle;
+
+#define CERN_TYPE_RECTANGLE cern_rectangle_get_type ()
+
+CernRectangle *
+cern_rectangle_new(void);
+
+CernRectangle *
+cern_rectangle_copy(CernRectangle *self);
+
+void
+cern_rectangle_free(CernRectangle *self);
 
 CernRectangle
 cern_rectangle_empty(void);
@@ -109,6 +121,9 @@ cern_rectangle_inflate(CernRectangle *self, gint32 width, gint32 height);
 
 void
 cern_rectangle_inflate_with_size(CernRectangle *self, CernSize *size);
+
+gboolean
+cern_rectangle_equals(CernRectangle *lhs, CernRectangle *rhs);
 
 G_END_DECLS
 

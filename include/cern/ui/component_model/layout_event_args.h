@@ -16,11 +16,11 @@ G_DECLARE_FINAL_TYPE(CernLayoutEventArgs, cern_layout_event_args,
 
 CernLayoutEventArgs *
 cern_layout_event_args_new(ICernComponentModelComponent *affected_component,
-                           gchar *affected_property);
+                           gchar const *affected_property);
 
 CernLayoutEventArgs *
 cern_layout_event_args_new_control(CernControl *affected_control,
-                                   gchar *affected_property);
+                                   gchar const *affected_property);
 
 ICernComponentModelComponent *
 cern_layout_event_args_get_affected_component(CernLayoutEventArgs *self);

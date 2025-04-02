@@ -1,7 +1,26 @@
 #include "cern/drawing/rectangle.h"
 #include "cern/drawing/point.h"
 #include "cern/drawing/size.h"
+#include <glib-object.h>
+#include <glib.h>
+#include <winperf.h>
 
+G_DEFINE_BOXED_TYPE(CernRectangle, cern_rectangle, cern_rectangle_copy, cern_rectangle_free);
+
+CernRectangle *
+cern_rectangle_new(void) {
+  return g_new0(CernRectangle, 1);
+}
+
+CernRectangle *
+cern_rectangle_copy(CernRectangle *self) {
+  return g_memdup2(self, sizeof(CernRectangle));
+}
+
+void
+cern_rectangle_free(CernRectangle *self) {
+  g_free(self);
+}
 
 CernRectangle
 cern_rectangle_create(gint32 x, gint32 y, gint32 width, gint32 height) {
@@ -188,5 +207,14 @@ void
 cern_rectangle_inflate_with_size(CernRectangle *self, CernSize *size) {
   self->width += cern_size_get_width(size);
   self->height += cern_size_get_height(size);
+}
+
+gboolean
+cern_rectangle_equals(CernRectangle *lhs, CernRectangle *rhs) {
+  return 
+    lhs->x == rhs->x
+      && lhs->y == rhs->y
+      && lhs->width == rhs->width
+      && lhs->height == rhs->height;
 }
 

@@ -124,20 +124,26 @@ target_include_directories (cern_io
   PRIVATE
     "include/")
 
+file(GLOB cern_ui_headers "include/cern/ui/*.h")
+
 add_library (cern_ui
   SHARED
+    ${cern_ui_headers}
     src/ui/win32/window.c
     src/ui/drop_target.c
 
-    # src/ui/control.c
+    src/ui/layout/default_layout.c
+    src/ui/layout/layout_transaction.c
+
+    src/ui/control.c
     src/ui/component_model/isite.c
     src/ui/component_model/component.c
     src/ui/component_model/icomponent.c
     src/ui/component_model/icontainer.c
     src/ui/component_model/event_args.c
+    src/ui/component_model/cancel_event_args.c
 
     src/ui/cursor.c
-    src/ui/control.c
     src/ui/control_tab_order_holder.c
 
     src/ui/native_window.c
@@ -145,6 +151,7 @@ add_library (cern_ui
 
     src/ui/ambient_properties.c
     src/ui/common_properties.c
+    src/ui/property_names.c
 
     src/ui/property_store.c
     src/ui/window_target.c

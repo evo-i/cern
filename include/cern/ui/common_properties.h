@@ -54,8 +54,7 @@ cern_common_properties_get_minimum_size(CernIArrangedElement *element,
 
 CernPadding
 cern_common_properties_get_padding(CernIArrangedElement *element,
-                                   CernPadding *default_padding);
-
+                                   CernPadding *value);
 CernRectangle
 cern_common_properties_get_specified_bounds(CernIArrangedElement *element);
 
@@ -146,7 +145,7 @@ gboolean
 cern_common_properties_get_flow_break(CernIArrangedElement *element);
 
 void
-cern_common_properites_set_flow_break(CernIArrangedElement *element, gboolean value);
+cern_common_properties_set_flow_break(CernIArrangedElement *element, gboolean value);
 
 CernSize
 cern_common_properties_get_layout_bounds(CernIArrangedElement *element);
