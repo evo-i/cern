@@ -1,9 +1,6 @@
 #include "cern/drawing/rectangle.h"
 #include "cern/drawing/point.h"
 #include "cern/drawing/size.h"
-#include <glib-object.h>
-#include <glib.h>
-#include <winperf.h>
 
 G_DEFINE_BOXED_TYPE(CernRectangle, cern_rectangle, cern_rectangle_copy, cern_rectangle_free);
 

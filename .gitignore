@@ -2,6 +2,7 @@
 /.vscode/
 # /vendor/
 /.cache/
+/inclue/cern/net/*
 /vendor/
 main.c
 CMakePresets.json

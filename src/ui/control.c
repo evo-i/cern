@@ -9,6 +9,7 @@
 #include "cern/ui/bounds_specified.h"
 #include "cern/ui/layout/layout_engine.h"
 #include "cern/ui/padding.h"
+#include "cern/ui/layout/layout_utils.h"
 #include "cern/drawing/internal/font_handle_wrapper.h"
 #include "cern/ui/component_model/cancel_event_args.h"
 #include "cern/ui/component_model/control_event_args.h"
@@ -904,12 +905,12 @@ real_cern_control_set_font(CernControl *self, CernFont *value) {
 
       if (cern_property_store_contains_integer(store, CernPropFontHeight)) {
         cern_property_store_set_integer(store, CernPropFontHeight,
-                                        (value == NULL) ? -1 ? cern_font_get_height(value));
+                                        (value == NULL) ? -1 : cern_font_get_height(value));
       }
 
       CernLayoutTransaction *lt
         = cern_layout_transaction_new(cern_control_get_parent_internal(self),
-                                          CERN_IARRANGED_ELEMENT(sefl),
+                                          CERN_IARRANGED_ELEMENT(self),
                                        cern_property_names_font());
       CernEventArgs *args = cern_event_args_new();
       cern_control_on_font_changed(self, args);
@@ -985,14 +986,14 @@ real_cern_control_get_preferred_size(CernControl *self,
                                     | CERN_CONTROL_STATE_DISPOSING)) {
     pref_size = cern_common_properties_x_get_preferred_size_cache(CERN_IARRANGED_ELEMENT(self));
   } else {
-    prop_size = cern_layout_utils_convert_zero_to_unbounded(proposed_size);
+    prop_size = cern_layout_utils_convert_zero_to_unbounded(prop_size);
 
     prop_size = cern_control_apply_size_constraints_size(self, &prop_size);
 
     CernSize cached_size
       = cern_common_properties_x_get_preferred_size_cache(CERN_IARRANGED_ELEMENT(self));
 
-      CernSize max_size = cern_layout_utils_max_size();
+      CernSize max_size = cern_layout_utils_get_max_size();
 
     if (cern_control_get_state2(self,
                                 CERN_CONTROL_STATE2_USEPREFERREDSIZECACHE)) {
@@ -1629,10 +1630,10 @@ real_cern_control_apply_bounds_constraints(CernControl *self, gint32 suggested_x
       };
 
       CernSize intersect_size
-        = cern_layout_utils_intersect_sizes(&tmp, maximum_size);
+        = cern_layout_utils_intersect_sizes(tmp, maximum_size);
       cern_rectangle_set_size(&new_bounds, &intersect_size);
       tmp = cern_rectangle_get_size(&new_bounds);
-      tmp = cern_layout_utils_intersect_sizes(&temp, &maximum_size);
+      tmp = cern_layout_utils_intersect_sizes(temp, maximum_size);
       cern_rectangle_set_size(&new_bounds, &tmp);
       return new_bounds;
     }
@@ -3407,7 +3408,7 @@ cern_control_get_margin(CernControl *self) {
 void
 cern_control_set_margin(CernControl *self, CernPadding *value) {
   CernPadding normalized_margin
-    = cern_layout_utils_clamp_negation_padding_to_zero(value);
+    = cern_layout_utils_clamp_negation_padding_to_zero(*value);
 
   CernPadding current_margin = cern_control_get_margin(self);
 
@@ -4418,7 +4419,7 @@ cern_control_apply_bounds_constraints(CernControl *self,
 
     CernSize temp2 = cern_rectangle_get_size(&new_bounds);
 
-    temp = cern_layout_utils_union_sizes(&temp2, &minimum_size);
+    temp = cern_layout_utils_union_sizes(temp2, minimum_size);
     cern_rectangle_set_size(&new_bounds, &temp);
     return new_bounds;
   }

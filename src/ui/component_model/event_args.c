@@ -1,8 +1,4 @@
-#include "cern/ui/component_model.h"
-
-struct _CernEventArgs {
-  GObject parent_instance;
-};
+#include "cern/ui/component_model/event_args.h"
 
 CernEventArgs *
 cern_event_args_new(void) {

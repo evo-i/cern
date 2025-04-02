@@ -36,6 +36,10 @@ cern_ambient_properties_dispose(GObject *object) {
 
 static
 void
+cern_ambient_properties_init(CernAmbientProperties *self) { }
+
+static
+void
 cern_ambient_properties_class_init(CernAmbientPropertiesClass *klass) {
   GObjectClass *object_class = G_OBJECT_CLASS(klass);
   object_class->finalize = cern_ambient_properties_finalize;

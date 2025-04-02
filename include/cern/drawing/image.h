@@ -11,11 +11,11 @@
 #include "graphics_unit.h"
 #include "property_item.h"
 #include "color_palette.h"
-#include "size_f.h"
-#include "rectangle_f.h"
 
 G_BEGIN_DECLS
 
+typedef struct _CernSizeF CernSizeF;
+typedef struct _CernRectangleF CernRectangleF;
 typedef struct _CernEncoderParameters CernEncoderParameters;
 
 #define CERN_TYPE_IMAGE (cern_image_get_type())

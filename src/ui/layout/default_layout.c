@@ -10,14 +10,12 @@
 #include "cern/ui/layout/iarranged_element.h"
 #include "cern/ui/layout/layout_engine.h"
 #include "cern/ui/common_properties.h"
+#include "cern/ui/property_names.h"
 #include "cern/ui/padding.h"
 #include "cern/ui/property_store.h"
+#include "cern/ui/layout/layout_utils.h"
+#include "cern/ui/layout/layout_transaction.h"
 #include "cern/ui/mdi_client.h"
-#include <glib-object.h>
-#include <glib.h>
-#include <glibconfig.h>
-#include <winscard.h>
-
 typedef enum _GrowthDirection {
   GrowthDirection_None = 0x0,
   GrowthDirection_Upward = 0x01,
@@ -54,7 +52,7 @@ void
 cern_anchor_info_init(CernAnchorInfo *self) { }
 
 void
-cern_anchor_info_init_class(CernAnchorInfoClass *klass) { }
+cern_anchor_info_class_init(CernAnchorInfoClass *klass) { }
 
 CernAnchorInfo *
 cern_anchor_info_new(void) {
@@ -253,7 +251,10 @@ cern_default_layout_set_cached_bounds(CernIArrangedElement *element,
       = cern_property_store_get_object(store, CachedBoundsProperty);
 
     if (table == NULL) {
-      table = g_hash_table_new_full(g_direct_hash, ptr_eq, NULL, (GDestroyNotify) cern_rectangle_free);
+      table
+        = g_hash_table_new_full(g_direct_hash,
+                                ptr_eq, NULL,
+                                (GDestroyNotify) cern_rectangle_free);
       cern_property_store_set_object(store, CachedBoundsProperty, table);
     }
 
@@ -384,7 +385,7 @@ cern_default_layout_layout_auto_sized_controls(CernIArrangedElement *container) 
             || bounds.height < pref_size.height) {
           CernSize bounds_size = cern_rectangle_get_size(&bounds);
           CernSize new_size
-            = cern_layout_utils_union_sizes(&bounds_size, &pref_size);
+            = cern_layout_utils_union_sizes(bounds_size, pref_size);
 
           new_bounds
             = cern_default_layout_get_growth_bounds(element, &new_size);
@@ -472,7 +473,7 @@ cern_default_layout_get_anchor_preferred_size(CernIArrangedElement *container) {
         = cern_default_layout_get_cached_bounds(element);
 
       CernRectangle element_space
-        = cern_layout_utils_inflate_rect(&cb, &margin);
+        = cern_layout_utils_inflate_rect(cb, margin);
 
       if (cern_default_layout_get_is_anchored(anchor, CernAnchorStyles_Left)
           && !cern_default_layout_get_is_anchored(anchor, CernAnchorStyles_Right)) {
@@ -939,8 +940,8 @@ cern_default_layout_x_layout(CernIArrangedElement *container,
     cern_default_layout_clear_cached_bounds(container);
 
     (*out_preferred_size)
-      = cern_layout_utils_union_sizes(&preferred_size_for_docking, 
-                                      &preferred_size_for_anchoring);
+      = cern_layout_utils_union_sizes(preferred_size_for_docking, 
+                                      preferred_size_for_anchoring);
   }
 
   return cern_common_properties_get_auto_size(container);

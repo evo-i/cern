@@ -5,7 +5,7 @@
 
 G_BEGIN_DECLS
 
-#define CERN_EVENT_ARGS_TYPE (cern_event_args_get_type())
+#define CERN_TYPE_EVENT_ARGS (cern_event_args_get_type())
 
 G_DECLARE_DERIVABLE_TYPE(CernEventArgs, cern_event_args, CERN, EVENT_ARGS, GObject);
 
