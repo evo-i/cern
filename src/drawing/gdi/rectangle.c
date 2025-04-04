@@ -131,6 +131,12 @@ cern_rectangle_get_location(CernRectangle *self) {
   return cern_point_create(self->x, self->y);
 }
 
+void
+cern_rectangle_set_location(CernRectangle *self, CernPoint *pt) {
+  self->x = pt->x;
+  self->y = pt->y;
+}
+
 gboolean
 cern_rectangle_is_empty(CernRectangle *self) {
   return

@@ -9,6 +9,15 @@ G_BEGIN_DECLS
 #include "gdi_object_type.h"
 #include "device_context_graphics_mode.h"
 #include "windows_region.h"
+#include "windows_font.h"
+#include "device_context_background_mode.h"
+#include "device_context_binary_raster_operation_flags.h"
+#include "device_context_text_alignment.h"
+#include "../device_capabilities.h"
+#include "device_context_map_mode.h"
+#include "../color.h"
+#include "../point.h"
+#include "../size.h"
 
 typedef struct _devicemodeA DEVMODEA;
 typedef struct _devicemodeW DEVMODEW;
@@ -287,6 +296,101 @@ cern_device_context_translate_transform(CernDeviceContext *self,
 gboolean
 cern_device_context_equals(CernDeviceContext *self, CernDeviceContext *other);
 
+CernWindowsFont *
+cern_device_context_get_active_font(CernDeviceContext *self);
+
+CernColor
+cern_device_context_get_background_color(CernDeviceContext *self);
+
+CernColor
+cern_device_context_set_background_color(CernDeviceContext *self, CernColor color);
+
+CernDeviceContextBackgroundMode
+cern_device_context_get_background_mode(CernDeviceContext *self);
+
+CernDeviceContextBackgroundMode
+cern_device_context_set_background_mode(CernDeviceContext *self,
+                                        CernDeviceContextBackgroundMode mode);
+
+CernDeviceContextBinaryRasterOperationFlags
+cern_device_context_get_binary_raster_operation(CernDeviceContext *self);
+
+CernDeviceContextBinaryRasterOperationFlags
+cern_device_context_set_binary_raster_operation(CernDeviceContext *self,
+                                                CernDeviceContextBinaryRasterOperationFlags flags);
+
+CernSize
+cern_device_context_get_dpi(CernDeviceContext *self);
+
+gint32
+cern_device_context_get_dpi_x(CernDeviceContext *self);
+
+gint32
+cern_device_context_get_dpi_y(CernDeviceContext *self);
+
+CernWindowsFont *
+cern_device_context_get_font(CernDeviceContext *self);
+
+void
+cern_device_context_set_font(CernDeviceContext *self, 
+                             CernWindowsFont *new_font);
+
+CernDeviceContext *
+cern_device_context_get_screen_dc(void);
+
+gpointer
+cern_device_context_select_font(CernDeviceContext *self,
+                                CernWindowsFont *font);
+
+void
+cern_device_context_reset_font(CernDeviceContext *self);
+
+gint32
+cern_device_context_get_device_capabilities(CernDeviceContext *self,
+                                            CernDeviceCapabilities capability_index);
+
+CernDeviceContextMapMode
+cern_device_context_get_map_mode(CernDeviceContext *self);
+
+CernDeviceContextMapMode
+cern_device_context_set_map_mode(CernDeviceContext *self,
+                                 CernDeviceContextMapMode value);
+
+gboolean
+cern_device_context_get_is_font_on_context_stack(CernDeviceContext *self,
+                                                 CernWindowsFont *font);
+
+gpointer
+cern_device_context_select_object(CernDeviceContext *self,
+                                  gpointer h_object,
+                                  CernGdiObjectType type);
+CernDeviceContextTextAlignment
+cern_device_context_get_text_alignment(CernDeviceContext *self);
+
+CernDeviceContextTextAlignment
+cern_device_context_set_text_alignment(CernDeviceContext *self, 
+                                       CernDeviceContextTextAlignment value);
+
+CernColor
+cern_device_context_get_text_color(CernDeviceContext *self);
+
+CernColor
+cern_device_context_set_text_color(CernDeviceContext *self,
+                                   CernColor color);
+
+CernSize
+cern_device_context_get_viewport_extent(CernDeviceContext *self);
+
+CernSize
+cern_device_context_set_viewport_extent(CernDeviceContext *self,
+                                        CernSize value);
+
+CernPoint
+cern_device_context_get_viewport_origin(CernDeviceContext *self);
+
+CernPoint
+cern_device_context_set_viewport_origin(CernDeviceContext *self,
+                                        CernPoint value);
 
 G_END_DECLS
 

@@ -10,6 +10,7 @@
 #include "cern/ui/layout/layout_engine.h"
 #include "cern/ui/padding.h"
 #include "cern/ui/layout/layout_utils.h"
+#include "cern/ui/control_tab_order_holder.h"
 #include "cern/drawing/internal/font_handle_wrapper.h"
 #include "cern/ui/component_model/cancel_event_args.h"
 #include "cern/ui/component_model/control_event_args.h"
@@ -18,6 +19,7 @@
 #include "cern/ui/component_model/invalidate_event_args.h"
 #include "cern/ui/context_menu.h"
 #include "cern/ui/control_collection.h"
+#include "cern/ui/dpi_helper.h"
 #include "cern/ui/control_styles.h"
 #include "cern/ui/create_params.h"
 #include "cern/ui/cursor.h"
@@ -33,15 +35,8 @@
 #include "cern/ui/control_native_window.h"
 #include "cern/ui/property_names.h"
 #include "cern/ui/layout/layout_transaction.h"
+#include "cern/ui/layout/layout_utils.h"
 #include <Windows.h>
-#include <glib-object.h>
-#include <glib.h>
-#include <glibconfig.h>
-#include <gobject/gmarshal.h>
-#include <minwindef.h>
-#include <windef.h>
-#include <wingdi.h>
-#include <winver.h>
 
 /*
  * @brief Signal with end _CHANGED 
@@ -301,6 +296,15 @@ G_DEFINE_TYPE_WITH_CODE(CernControl, cern_control,
   G_ADD_PRIVATE(CernControl)
   G_IMPLEMENT_INTERFACE(CERN_TYPE_WIN32_WINDOW,
     cern_control_win32_window_interface_init));
+
+static
+gboolean
+cern_control_get_state2(CernControl *self, gint32 flag) {
+  CernControlPrivate *priv
+    = cern_control_get_instance_private(self);
+
+  return (priv->state2 & flag) != 0;
+}
 
 static
 gpointer
@@ -1015,7 +1019,7 @@ real_cern_control_get_preferred_size(CernControl *self,
 
     if (cern_control_get_state2(self, CERN_CONTROL_STATE2_USEPREFERREDSIZECACHE)
         && cern_size_equals(proposed_size, &max_size)) {
-      cern_common_properties_x_set_preferred_size_cache(self, &pref_size);
+      cern_common_properties_x_set_preferred_size_cache(CERN_IARRANGED_ELEMENT(self), &pref_size);
     }
   }
 
@@ -1027,7 +1031,7 @@ CernSize
 real_cern_control_get_preferred_size_core(CernControl *self,
                                           CernSize *proposed_size) {
   CernRectangle rect
-    = cern_common_properties_get_specified_bounds(self);
+    = cern_common_properties_get_specified_bounds(CERN_IARRANGED_ELEMENT(self));
   return cern_rectangle_get_size(&rect);
 }
 
@@ -1162,7 +1166,7 @@ static
 void
 real_cern_control_set_right_to_left(CernControl *self, CernRightToLeft value) {
   if (!cern_client_utils_is_valid_enum(value, CernRightToLeft_No, CernRightToLeft_Inherit)) {
-    g_critical("%s(...): Invalid CernRightToLeft value.");
+    g_critical("%s(...): Invalid CernRightToLeft value.", __func__);
     return;
   }
 
@@ -1176,8 +1180,8 @@ real_cern_control_set_right_to_left(CernControl *self, CernRightToLeft value) {
 
   if (old_value !=  value) {
     CernLayoutTransaction *ltr
-      = cern_layout_transacation_new(self, CERN_IARRANGED_ELEMENT(self),
-                                     cern_property_names_right_to_left());
+      = cern_layout_transaction_new(self, CERN_IARRANGED_ELEMENT(self),
+                                    cern_property_names_right_to_left());
     CernEventArgs *args = cern_event_args_new();
 
     cern_control_on_parent_right_to_left_changed(self, args);
@@ -1268,7 +1272,7 @@ real_cern_control_get_show_focus_cues(CernControl *self) {
     return TRUE;
   }
 
-  if ((priv.ui_cues_state & CERN_UISTATE_FOCUS_CUES_MASK) == 0) {
+  if ((priv->ui_cues_state & CERN_UISTATE_FOCUS_CUES_MASK) == 0) {
     if (cern_control_system_information_menu_access_keys_underlined()) {
       priv->ui_cues_state |= CERN_UISTATE_FOCUS_CUES_SHOW;
     } else {
@@ -1334,8 +1338,8 @@ real_cern_control_set_window_text(CernControl *self, gchar *value) {
 
   gchar *window_text = cern_control_get_window_text(self);
 
-  if(g_strcmp0(value, window_text) != 0) {
-    if (cern_control_get_is_handle_created(self) {
+  if(g_strcmp0(value, window_text) != 0)) {
+    if (cern_control_get_is_handle_created(self)) {
       SetWindowTextA(cern_control_get_handle(self), value);
     } else {
       if (g_utf8_strlen(value) == 0) {
@@ -1354,6 +1358,9 @@ real_cern_control_assign_parent(CernControl *self, CernControl *parent) {
     cern_control_set_required_scaling_enabled(self, cern_control_get_required_scaling_enabled(parent));
   }
 
+  CernControlPrivate *priv
+     = cern_control_get_instance_private(self);
+
   if (cern_control_get_can_access_properties(self)) {
     CernFont *old_font = cern_control_get_font(self);
     CernColor old_fore_color = cern_control_get_fore_color(self);
@@ -1362,7 +1369,6 @@ real_cern_control_assign_parent(CernControl *self, CernControl *parent) {
     gboolean old_enabled = cern_control_get_enabled(self);
     gboolean old_visible = cern_control_get_visible(self);
 
-    CernControlPrivate *priv = cern_control_get_instance_private(self);
     priv->parent = parent;
 
     CernEventArgs *args = cern_event_args_new();
@@ -1400,7 +1406,7 @@ real_cern_control_assign_parent(CernControl *self, CernControl *parent) {
     if (!cern_color_equals(&old_fore_color, &new_fore_color)) {
       CernEventArgs *args = cern_event_args_new();
       cern_control_on_fore_color_changed(self, args);
-      g_clear_object(&args)
+      g_clear_object(&args);
     }
 
     CernColor new_back_color = cern_control_get_back_color(self);
@@ -1633,7 +1639,7 @@ real_cern_control_apply_bounds_constraints(CernControl *self, gint32 suggested_x
         = cern_layout_utils_intersect_sizes(tmp, maximum_size);
       cern_rectangle_set_size(&new_bounds, &intersect_size);
       tmp = cern_rectangle_get_size(&new_bounds);
-      tmp = cern_layout_utils_intersect_sizes(temp, maximum_size);
+      tmp = cern_layout_utils_intersect_sizes(tmp, maximum_size);
       cern_rectangle_set_size(&new_bounds, &tmp);
       return new_bounds;
     }
@@ -1785,7 +1791,7 @@ real_cern_control_on_handle_created(CernControl *self, CernEventArgs *args) {
       cern_control_set_window_font(self);
     }
 
-    if (cern_dpi_helper_enable_dpi_changed_message_handling()
+    if (cern_dpi_helper_get_enable_dpi_changed_message_handling()
         && !CERN_IS_WINDOW(self)) {
       gint32 old = priv->device_dpi;
       priv->device_dpi = (gint32) GetDpiForWindow((HWND) cern_control_get_handle(self));
@@ -1811,7 +1817,7 @@ real_cern_control_on_handle_created(CernControl *self, CernEventArgs *args) {
                    IsWindowVisible((HWND) cern_control_get_handle(self)));
 
       if (region_handle != NULL) {
-        DeleteObject((HGDIOB) region_handle);
+        DeleteObject((HGDIOBJ) region_handle);
       }
     }
 
@@ -1832,7 +1838,7 @@ real_cern_control_on_handle_created(CernControl *self, CernEventArgs *args) {
       cern_control_set_state2(self, CERN_CONTROL_STATE2_SETSCROLLPOS, FALSE);
     }
 
-    g_signal_emit(self, CernControlSignals[SIGNAL_HANDLE_CREATED], 0, args);
+    // g_signal_emit(self, CernControlSignals[SIGNAL_HANDLE_CREATED], 0, args);
 
 
     if (cern_control_get_is_handle_created(self)) {
@@ -1844,7 +1850,7 @@ real_cern_control_on_handle_created(CernControl *self, CernEventArgs *args) {
       }
     }
   }
-  g_signal_emit(self, CernControlSignals[SIGNAL_HANDLE_CREATED], 0, args);
+  // g_signal_emit(self, CernControlSignals[SIGNAL_HANDLE_CREATED], 0, args);
 
 
   if (cern_control_get_is_handle_created(self)) {
@@ -1859,7 +1865,7 @@ real_cern_control_on_handle_created(CernControl *self, CernEventArgs *args) {
 
 static
 void
-cern_control_finalize(GObject *object) {
+rela_cern_control_finalize(GObject *object) {
   CernControl *self = CERN_CONTROL(object);
   CernControlPrivate *priv;
 
@@ -2926,10 +2932,10 @@ cern_control_get_default_size(CernControl *self) {
 gint32
 cern_control_get_device_dpi(CernControl *self) {
   CernControlPrivate *priv = cern_control_get_instance_private(self);
-  if (cern_dpi_helper_enable_dpi_changed_message_handling()) {
+  if (cern_dpi_helper_get_enable_dpi_changed_message_handling()) {
     return priv->device_dpi;
   }
-  return cern_dpi_helper_device_dpi();
+  return cern_dpi_helper_get_device_dpi();
 }
 
 gboolean
@@ -2984,7 +2990,7 @@ cern_control_scale_font(CernControl *self, gfloat factor) {
   CernFont *local_font = cern_property_store_get_object(store, CernPropFont);
   CernFont *resolved = cern_control_get_font(self);
   CernFont *new_font
-    = cern_dpi_helper_enable_dpi_changed_high_dpi_improvements()
+    = cern_dpi_helper_get_enable_dpi_changed_high_dpi_improvements()
       ? cern_font_new_4(cern_font_get_font_family(resolved),
                         cern_font_get_size(resolved) * factor,
                         cern_font_get_style(resolved),
@@ -3101,7 +3107,7 @@ cern_control_get_font_height(CernControl *self) {
   }
 
   if (local_font_height == -1) {
-    local_font_height = cern_font_get_height(font);
+    local_font_height = cern_font_get_height(cern_control_get_font(self));
 
     cern_property_store_set_integer(store, CernPropFontHeight, local_font_height);
   }
@@ -3185,7 +3191,10 @@ void
 cern_control_set_height(CernControl *self, gint32 value) {
   CernControlPrivate *priv = cern_control_get_instance_private(self);
 
-  cern_control_set_bounds(self, priv->x, priv->y, priv->width, value, CernBoundsSpecified_Height);
+  cern_control_set_bounds_private(self,
+                                  priv->x, priv->y,
+                                  priv->width, priv->height,
+                                  CernBoundsSpecified_None);
 }
 
 gboolean
@@ -3213,8 +3222,8 @@ cern_control_get_hosted_in_win32_dialog_manager(CernControl *self) {
       while (parent_handle != NULL) {
         gint32 len = GetClassName(last_parent_handle, NULL, 0);
 
-        if (len > sb.capacity) {
-          buf.sb = g_renew(buf.sb, gchar, len + 5);
+        if (len > buf.capacity) {
+          buf.sb = g_renew(gchar, buf.sb, len + 5);
           buf.capacity = len + 5;
         }
 
@@ -3226,7 +3235,7 @@ cern_control_get_hosted_in_win32_dialog_manager(CernControl *self) {
         }
 
         last_parent_handle = parent_handle;
-        parent = GetParent(last_parent_handle);
+        parent_handle = GetParent(last_parent_handle);
       }
 
       g_free(buf.sb);
@@ -3275,7 +3284,7 @@ cern_control_get_is_window_obscured(CernControl *self) {
   CernRectangle self_rect
     = cern_rectangle_create_with_ltrb(temp.left, temp.top, temp.right, temp.bottom);
 
-  working = cern_region_new_rect(self_rect);
+  working = cern_region_new_rect(&self_rect);
 
   {
     HWND prev;
@@ -3382,7 +3391,7 @@ cern_control_get_left(CernControl *self) {
 void
 cern_control_set_left(CernControl *self, gint32 value) {
   CernControlPrivate *priv = cern_control_get_instance_private(self);
-  cern_control_set_bounds(self, value, priv->y, priv->width priv->height, CernBoundsSpecified_X);
+  cern_control_set_bounds_private(self, value, priv->y, priv->width, priv->height, CernBoundsSpecified_X);
 }
 
 CernPoint
@@ -3397,7 +3406,7 @@ cern_control_get_location(CernControl *self) {
 void
 cern_control_set_location(CernControl *self, CernPoint *value) {
   CernControlPrivate *priv = cern_control_get_instance_private(self);
-  cern_control_set_bounds(self, value->x, value->y, priv->width, priv->height, CernBoundsSpecified_Location);
+  cern_control_set_bounds_private(self, value->x, value->y, priv->width, priv->height, CernBoundsSpecified_Location);
 }
 
 CernPadding
@@ -3429,7 +3438,7 @@ cern_control_get_maximum_size(CernControl *self) {
 void
 cern_control_set_maximum_size(CernControl *self, CernSize *value) {
   CernControlClass *klass = CERN_CONTROL_GET_CLASS(self);
-  klass->set_maximum_size(self, value);
+  klass->set_maximum_size(self, *value);
 }
 
 CernSize
@@ -3441,7 +3450,7 @@ cern_control_get_minimum_size(CernControl *self) {
 void
 cern_control_set_minimum_size(CernControl *self, CernSize *value) {
   CernControlClass *klass = CERN_CONTROL_GET_CLASS(self);
-  klass->set_minimum_size(self, value);
+  klass->set_minimum_size(self, *value);
 }
 
 CernKeys
@@ -3571,7 +3580,7 @@ cern_control_get_properties(CernControl *self) {
 CernColor
 cern_control_get_raw_back_color(CernControl *self) {
   CernPropertyStore *store = cern_control_get_properties(self);
-  return cern_property_store_get_color(CernPropBackColor);
+  return *cern_property_store_get_color(store, CernPropBackColor);
 }
 
 gboolean
@@ -3666,7 +3675,7 @@ cern_control_get_required_scaling_enabled(CernControl *self) {
 
 void
 cern_control_set_required_scaling_enabled(CernControl *self, gboolean value) {
-  CernControlPrivate *priv
+  CernControlPrivate *priv = cern_control_get_instance_private(self);
   guint8 scaling
     = (guint8)(priv->required_scaling & CERN_CONTROL_REQUIRED_SCALING_MASK);
 
@@ -3707,7 +3716,7 @@ cern_control_set_right_to_left(CernControl *self, CernRightToLeft value) {
 gboolean
 cern_control_get_scale_children(CernControl *self) {
   CernControlClass *klass = CERN_CONTROL_GET_CLASS(self);
-  return klass->get_scale_childred(self);
+  return klass->get_scale_children(self);
 }
 
 CernSize
@@ -3716,14 +3725,14 @@ cern_control_get_size(CernControl *self) {
 
   return (CernSize) {
     .width = priv->width,
-    .heigth = priv->height
+    .height = priv->height
   };
 }
 
 void
 cern_control_set_size(CernControl *self, CernSize *value) {
   CernControlPrivate *priv = cern_control_get_instance_private(self);
-  cern_control_set_bounds(self, priv->x, priv->y, value->width, value->height, CernBoundsSpecified_Size);
+  cern_control_set_bounds_private(self, priv->x, priv->y, value->width, value->height, CernBoundsSpecified_Size);
 }
 
 gint32
@@ -3822,7 +3831,7 @@ void
 cern_control_set_top(CernControl *self, gint32 value) {
   CernControlPrivate *priv = cern_control_get_instance_private(self);
 
-  cern_control_set_bounds(self, priv->x, valule, priv->width, priv->height, CernBoundsSpecified_Y);
+  cern_control_set_bounds_private(self, priv->x, value, priv->width, priv->height, CernBoundsSpecified_Y);
 }
 
 CernControl *
@@ -3955,7 +3964,7 @@ void
 cern_control_set_width(CernControl *self, gint32 value) {
   CernControlPrivate *priv = cern_control_get_instance_private(self);
 
-  cern_control_set_bounds(self, priv->x, priv->y, value, priv->height, CernBoundsSpecified_Width);
+  cern_control_set_bounds_private(self, priv->x, priv->y, value, priv->height, CernBoundsSpecified_Width);
 }
 
 gint32
@@ -4006,13 +4015,14 @@ cern_control_set_padding(CernControl *self, CernPadding *value) {
     cern_control_set_state(self, CERN_CONTROL_STATE_LAYOUTISDIRTY, TRUE);
 
     {
-      CernLayoutTransation *lt
-        = cern_layout_transacation_new(cern_control_get_parent_internal(self),
-                                       CERN_IARRANGED_ELEMENT(self),
-                                       cern_property_names_padding(), TRUE);
+      CernLayoutTransaction *lt
+        = cern_layout_transaction_new_resume_layout(cern_control_get_parent_internal(self),
+                                                    CERN_IARRANGED_ELEMENT(self),
+                                                    cern_property_names_padding(), TRUE);
       CernEventArgs *args = cern_event_args_new();
       cern_control_on_padding_changed(self, args);
       g_clear_object(&args);
+      g_clear_object(&lt);
     }
 
     if (cern_control_get_state(self, CERN_CONTROL_STATE_LAYOUTISDIRTY)) {
@@ -4040,7 +4050,7 @@ cern_control_begin_update_internal(CernControl *self) {
 
   if (priv->update_count == 0) {
     SendMessageA((HWND) cern_control_get_handle(self),
-                 WM_SET_REDRAW, (WPARAM) 0, (LPARAM) 0);
+                 WM_SETREDRAW, (WPARAM) 0, (LPARAM) 0);
   }
 
   priv->update_count++;
@@ -4067,7 +4077,7 @@ cern_control_can_process_mnemonic(CernControl *self) {
 
 gboolean
 cern_control_can_select_core(CernControl *self) {
-  CernConrolClass *klass = CERN_CONTROL_GET_CLASS(self);
+  CernControlClass *klass = CERN_CONTROL_GET_CLASS(self);
 
   klass->can_select_core(self);
 }
@@ -4077,7 +4087,7 @@ cern_control_check_parenting_cycle(CernControl *bottom, CernControl *to_find) {
   CernWindow *last_owner = NULL;
   CernControl *last_parent = NULL;
 
-  for (Control *ctl = bottom;
+  for (CernControl *ctl = bottom;
        ctl != NULL;
        ctl = cern_control_get_parent_internal(ctl)) {
     last_parent = ctl;
@@ -4276,7 +4286,7 @@ cern_control_end_update_internal_invalidate(CernControl *self, gboolean invalida
 
   if (priv->update_count > 0) {
     priv->update_count--;
-    cern_control_send_message(self, WM_SET_REDRAW, -1, -0);
+    cern_control_send_message(self, WM_SETREDRAW, -1, -0);
 
     if (invalidate) {
       cern_control_invalidate(self);
@@ -4314,7 +4324,8 @@ cern_control_get_top_level(CernControl *self) {
 void
 cern_control_raise_create_handle_event(CernControl *self, CernEventArgs *args) {
   CernControlPrivate *priv = cern_control_get_instance_private(self);
-  g_signal_emit(G_OBJECT(self), priv->create_handle_signal_id, 0, args);
+  // g_signal_emit(G_OBJECT(self), priv->create_handle_signal_id, 0, args);
+  /* Call signal from the table. */
 }
 
 void
@@ -4331,7 +4342,7 @@ cern_control_focus(CernControl *self) {
 gboolean
 cern_control_focus_internal(CernControl *self) {
   CernControlClass *klass = CERN_CONTROL_GET_CLASS(self);
-  return klass->focus_inernal(self);
+  return klass->focus_internal(self);
 }
 
 CernControl *
@@ -4376,7 +4387,7 @@ cern_control_from_handle_internal(gpointer handle) {
 CernSize
 cern_control_apply_size_constraints(CernControl *self, gint32 width, gint32 height) {
   CernRectangle rect
-    = cern_control_apply_bounds_constraints(self, 0, 0, width, heght);
+    = cern_control_apply_bounds_constraints(self, 0, 0, width, height);
 
   return cern_rectangle_get_size(&rect);
 }
@@ -4386,7 +4397,7 @@ cern_control_apply_size_constraints_size(CernControl *self, CernSize *size) {
   CernRectangle rect
     = cern_control_apply_bounds_constraints(self, 0, 0, size->width, size->height);
 
-  return cern_rectangle_get_size(*rect);
+  return cern_rectangle_get_size(&rect);
 }
 
 CernRectangle
@@ -4397,10 +4408,10 @@ cern_control_apply_bounds_constraints(CernControl *self,
   CernSize maximum_size = cern_control_get_maximum_size(self);
   CernSize empty_size = { 0 };
 
-  if (!cern_size_equals(&minimum_size, empty_size)
+  if (!cern_size_equals(&minimum_size, &empty_size)
       || !cern_size_equals(&maximum_size, &empty_size)) {
     CernSize max_size
-      = cern_layouts_utils_convert_zero_to_unbounded(&maximum_size);
+      = cern_layout_utils_convert_zero_to_unbounded(maximum_size);
 
     CernRectangle new_bounds = {
       .x = suggested_x,
@@ -4414,7 +4425,7 @@ cern_control_apply_bounds_constraints(CernControl *self,
       .height = proposed_height
     };
 
-    CernSize temp = cern_layout_utils_intersect_sizes(&proposed_size, &minimum_size);
+    CernSize temp = cern_layout_utils_intersect_sizes(proposed_size, minimum_size);
     cern_rectangle_set_size(&new_bounds, &temp);
 
     CernSize temp2 = cern_rectangle_get_size(&new_bounds);
@@ -4551,7 +4562,7 @@ cern_control_get_child_controls_in_tab_order_list(CernControl *self, gboolean ha
     = cern_control_collection_get_count(controls);
 
   for (gsize i = 0; i < controls_count; i++) {
-    CernControl *ctl = cern_control_collection_get_by_index(collections, i);
+    CernControl *ctl = cern_control_collection_get_by_index(controls, i);
 
     if (!handle_created_only || cern_control_get_is_handle_created(ctl)) {
       CernControlTabOrderHolder *holder
@@ -4609,7 +4620,7 @@ cern_control_get_child_windows_tab_order_list(CernControl *self) {
 static
 void
 child_windows_fill(gpointer item, gpointer data) {
-  GArray indexes = data;
+  // GArray indexes = data;
 }
 
 GArray *
@@ -4731,7 +4742,7 @@ cern_control_get_next_control(CernControl *self, CernControl *ctl, gboolean forw
 
       for (gsize c = parent_controls_count - 1; c >= 0; c--) {
         CernControl *cursor
-          = cern_control_collection_get_by_index(parent_control, c);
+          = cern_control_collection_get_by_index(parent_controls, c);
         if (cursor != ctl) {
           if (cern_control_get_tab_index(cursor)<= target_index) {
             if (found == NULL
@@ -4816,7 +4827,7 @@ cern_control_invalidate_region(CernControl *self, CernRectangle *region) {
 }
 
 void
-cern_control_invalidate_region_ex(CernControl *self, CernRectangle *region, gboolean invalidat_children) {
+cern_control_invalidate_region_ex(CernControl *self, CernRectangle *region, gboolean invalidate_children) {
   if (region == NULL) {
     cern_control_invalidate_ex(self, invalidate_children);
   } else if (cern_control_get_is_handle_created(self)) {
@@ -4868,7 +4879,7 @@ cern_control_invalidate_ex(CernControl *self, gboolean invalidate_children) {
       RedrawWindow((HWND) cern_control_get_handle(self),
                    NULL, NULL,
                    RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
-    } esle {
+    } else {
       InvalidateRect((HWND) cern_control_get_handle(self),
                      NULL, (priv->control_style & CernControlStyles_Opaque) != CernControlStyles_Opaque);
     }
@@ -4917,7 +4928,7 @@ cern_control_invalidate_rect_ex(CernControl *self, CernRectangle *rect, gboolean
 }
 
 void
-cern_control_invoke_paint(CernControl *self, CernContol *ctl, CernPaintEventArgs *args) {
+cern_control_invoke_paint(CernControl *self, CernControl *ctl, CernPaintEventArgs *args) {
   cern_control_on_paint(ctl, args);
 }
 
@@ -4935,7 +4946,7 @@ cern_control_is_font_set_internal(CernControl *self) {
 
 gboolean
 cern_control_is_descendant_internal(CernControl *self, CernControl *control) {
-  CernContol *descendant = control;
+  CernControl *descendant = control;
 
   while (descendant != NULL) {
     if (self == descendant) {
@@ -4996,8 +5007,8 @@ cern_control_is_mnemonic(CernControl *self, gchar char_code, gchar const *text) 
         break;
       }
 
-      gchar *pos = g_utf8_strchr(text + pos + 1, text_len, '&');
-      pos = pos - text;
+      gchar *pos_str = g_utf8_strchr(text + pos + 1, text_len, '&');
+      pos = pos_str - text;
 
       if (pos <= 0 || pos >= text_len) {
         break;
@@ -5016,21 +5027,23 @@ cern_control_is_mnemonic(CernControl *self, gchar char_code, gchar const *text) 
 
 gint32
 cern_control_logical_to_device_units(CernControl *self, gint32 logical_value) {
-  return cern_dpi_helper_logical_to_device_units(value, cern_control_get_device_dpi(self));
+  return cern_dpi_helper_logical_to_device_units(logical_value, cern_control_get_device_dpi(self));
 }
 
 CernSize
 cern_control_logical_to_device_units_size(CernControl *self, CernSize *logical_size) {
-  return cern_dpi_helper_logical_to_device_units_size(logical_size, cern_control_get_device_dpi(self));
+  return cern_dpi_helper_logical_to_device_units_size(*logical_size, cern_control_get_device_dpi(self));
 }
 
 void
-cern_control_scale_bitmap_logical_to_device(CernControl *self, CernBitmap *bitmap) {
-  cern_dpi_helper_logical_to_device_bitmap(bitmap, cern_control_get_device_dpi(self));
+cern_control_scale_bitmap_logical_to_device(CernControl *self, CernBitmap **bitmap) {
+  cern_dpi_helper_scale_bitmap_logical_to_device(bitmap,
+                                                 cern_control_get_device_dpi(self));
 }
 
 void
-cern_control_adjust_window_rect_ex(CernRectangle *rect, gint32 style,
+cern_control_adjust_window_rect_ex(CernControl *self,
+                                   CernRectangle *rect, gint32 style,
                                    gboolean menu, gint32 ex_style) {
   CernControlPrivate *priv = cern_control_get_instance_private(self);
   RECT rect = {
@@ -5296,4 +5309,3 @@ cern_control_on_control_removed(CernControl *self, CernEventArgs *args) {
   CernControlClass *klass = CERN_CONTROL_GET_CLASS(self);
   klass->on_control_removed(self, args);
 }
-

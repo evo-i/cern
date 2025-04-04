@@ -1430,10 +1430,11 @@ CernSize
 cern_control_logical_to_device_units_size(CernControl *self, CernSize *logical_size);
 
 void
-cern_control_scale_bitmap_logical_to_device(CernControl *self, CernBitmap *bitmap);
+cern_control_scale_bitmap_logical_to_device(CernControl *self, CernBitmap **bitmap);
 
 void
-cern_control_adjust_window_rect_ex(CernRectangle *rect, gint32 style,
+cern_control_adjust_window_rect_ex(CernControl *self,
+                                   CernRectangle *rect, gint32 style,
                                    gboolean menu, gint32 ex_style);
 
 void

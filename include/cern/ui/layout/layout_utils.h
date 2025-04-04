@@ -1,4 +1,3 @@
-#include <glibconfig.h>
 #ifndef CERN_UI_LAYOUT_UTILS_H
 #define CERN_UI_LAYOUT_UTILS_H 1
 
@@ -6,13 +5,15 @@
 #include "cern/drawing/size.h"
 #include "cern/drawing/rectangle.h"
 #include "cern/drawing/font.h"
-#include "../anchor_styles.h"
-#include "../dock_style.h"
+#include "cern/drawing/point.h"
 #include "iarranged_element.h"
 #include "default_layout.h"
 #include "../padding.h"
 #include "../text_image_relation.h"
 #include "../content_alignment.h"
+#include "../anchor_styles.h"
+#include "../dock_style.h"
+
 
 G_BEGIN_DECLS
 
@@ -217,8 +218,48 @@ cern_layout_utils_calmp_negative_padding_to_zero(CernPadding padding) {
   return padding;
 }
 
+static
+inline
+CernAnchorStyles
+cern_layout_utils_get_opposite_anchor(CernAnchorStyles anchor) {
+  CernAnchorStyles result = CernAnchorStyles_None;
+
+  if (anchor == CernAnchorStyles_None) {
+    return result;
+  }
+
+  for (gsize i = 0; i < (gsize) CernAnchorStyles_Right; i = i << 1) {
+    switch (anchor & (CernAnchorStyles) i) {
+      case CernAnchorStyles_None:
+        break;
+      case CernAnchorStyles_Left:
+        result |= CernAnchorStyles_Right;
+        break;
+      case CernAnchorStyles_Top:
+        result |= CernAnchorStyles_Bottom;
+        break;
+      case CernAnchorStyles_Right:
+        result |= CernAnchorStyles_Left;
+        break;
+      case CernAnchorStyles_Bottom:
+        result |= CernAnchorStyles_Top;
+        break;
+      default:
+        break;
+    }
+  }
+
+  return result;
+}
+
+static
+inline
 CernTextImageRelation
-cern_layout_utils_get_opposite_text_image_relation(CernTextImageRelation relation);
+cern_layout_utils_get_opposite_text_image_relation(CernTextImageRelation relation) {
+  return 
+    (CernTextImageRelation) 
+    cern_layout_utils_get_opposite_anchor((CernAnchorStyles) relation);
+}
 
 static
 inline
@@ -459,6 +500,26 @@ cern_layout_utils_add_aligned_region_core(CernSize current_size,
 
 static
 inline
+gboolean
+cern_layout_utils_is_vertical_relation(CernTextImageRelation relation) {
+  return
+    (relation 
+      & (CernTextImageRelation_TextAboveImage 
+          | CernTextImageRelation_ImageAboveText)) != 0;
+}
+
+static
+inline
+gboolean
+cern_layout_utils_is_horizontal_relation(CernTextImageRelation relation) {
+  return 
+    (relation
+      & (CernTextImageRelation_TextAboveImage
+          | CernTextImageRelation_ImageAboveText)) != 0;
+}
+
+static
+inline
 CernSize
 cern_layout_utils_add_aligned_region(CernSize text_size,
                                      CernSize image_size,
@@ -467,6 +528,280 @@ cern_layout_utils_add_aligned_region(CernSize text_size,
     cern_layout_utils_add_aligned_region_core(text_size, 
                                               image_size,
                                               cern_layout_utils_is_vertical_relation(relation));
+}
+
+static
+inline
+CernPadding
+cern_layout_utils_flip_padding(CernPadding padding) {
+  if (cern_padding_get_all(&padding) != -1) {
+    return padding;
+  }
+
+  gint32 temp = padding.top;
+
+  padding.top = padding.left;
+  padding.left = temp;
+
+  temp = padding.bottom;
+  padding.bottom = padding.right;
+  padding.right = temp;
+
+  return padding;
+}
+
+static
+inline
+CernPoint
+cern_layout_utils_flip_point(CernPoint point) {
+  gint32 temp = point.x;
+  point.x = point.y;
+  point.y = temp;
+  return point;
+}
+
+static
+inline
+CernSize
+cern_layout_utils_flip_size(CernSize size) {
+  gint32 temp = size.width;
+  size.width = size.height;
+  size.height = temp;
+  return size;
+}
+
+static
+inline
+CernSize
+cern_layout_utils_flip_size_if(gboolean condition, CernSize size) {
+  return 
+    condition
+      ? cern_layout_utils_flip_size(size)
+      : size;
+}
+
+static
+inline
+CernRectangle
+cern_layout_utils_flip_rectangle(CernRectangle rect) {
+  CernPoint new_location
+    = cern_layout_utils_flip_point(cern_rectangle_get_location(&rect));
+
+  cern_rectangle_set_location(&rect, &new_location);
+
+  CernSize new_size
+    = cern_layout_utils_flip_size(cern_rectangle_get_size(&rect));
+
+  cern_rectangle_set_size(&rect, &new_size);
+  return rect;
+}
+
+static
+inline
+CernRectangle
+cern_layout_utils_flip_rectangle_if(gboolean condition, CernRectangle rect) {
+  return 
+    condition 
+      ? cern_layout_utils_flip_rectangle(rect) 
+      : rect;
+}
+
+static
+inline
+gboolean
+cern_layout_utils_is_vertical_alignment(CernContentAlignment align) {
+  return 
+    (align &
+      (CernContentAlignment_TopCenter
+        | CernContentAlignment_BottomCenter)) != 0;
+}
+
+static
+inline
+gboolean
+cern_layout_utils_is_horizontal_alignment(CernContentAlignment align) {
+  return !cern_layout_utils_is_vertical_alignment(align);
+}
+
+static
+inline
+gboolean
+cern_layout_utils_is_zero_width_or_height(CernRectangle rect) {
+  return (rect.width == 0 || rect.height == 0);
+}
+
+static
+inline
+gboolean
+cern_layout_utils_is_zero_width_or_height_size(CernSize size) {
+  return size.width == 0 || size.height == 0;
+}
+
+static
+inline
+gboolean
+cern_layout_utils_are_width_and_height_larger(CernSize size1, CernSize size2) {
+  return 
+    ((size1.width >= size2.width)
+      && (size1.height >= size2.height));
+}
+
+static
+inline
+void
+cern_layout_utils_split_region(CernRectangle bounds,
+                               CernSize specified_content,
+                               CernAnchorStyles region1_align,
+                               CernRectangle *out_region1,
+                               CernRectangle *out_region2) {
+  if (out_region1 == NULL
+      || out_region2 == NULL) {
+    g_critical("%s(...): out_region1 and out_region2 cannot be NULL.", __func__);
+  }
+
+  (*out_region1) = (*out_region2) = bounds;
+
+  switch (region1_align) {
+    case CernAnchorStyles_Left: {
+      out_region1->width = specified_content.width;
+      out_region2->x += specified_content.width;
+      out_region2->width -= specified_content.width;
+    } break;
+    case CernAnchorStyles_Right: {
+      out_region1->x += bounds.width - specified_content.width;
+      out_region1->width = specified_content.width;
+      out_region2->width -= specified_content.width;
+    } break;
+    case CernAnchorStyles_Top: {
+      out_region1->height = specified_content.height;
+      out_region2->y += specified_content.height;
+      out_region2->height -= specified_content.height;
+    } break;
+    case CernAnchorStyles_Bottom: {
+      out_region1->y -= bounds.width - specified_content.width;
+      out_region1->height = specified_content.height;
+      out_region2->height -= specified_content.height;
+    } break;
+    default: {
+      g_critical("%s(...): Unsupported value of region1_align", __func__);
+    }
+  }
+}
+
+static
+inline
+CernRectangle
+cern_layout_utils_subtitute_specified_bounds(CernRectangle original_bounds,
+                                             CernRectangle subtituate_bounds,
+                                             CernAnchorStyles specified) {
+  gint32 left
+    = (specified & CernAnchorStyles_Left) != 0 
+        ? cern_rectangle_get_left(&subtituate_bounds)
+        : cern_rectangle_get_left(&original_bounds);
+  gint32 top
+    = (specified & CernAnchorStyles_Top) != 0
+        ? cern_rectangle_get_top(&subtituate_bounds)
+        : cern_rectangle_get_top(&original_bounds);
+  gint32 right
+    = (specified & CernAnchorStyles_Right) != 0
+        ? cern_rectangle_get_right(&subtituate_bounds)
+        : cern_rectangle_get_right(&original_bounds);
+  gint32 bottom
+    = (specified & CernAnchorStyles_Bottom) != 0
+        ? cern_rectangle_get_bottom(&subtituate_bounds)
+        : cern_rectangle_get_bottom(&original_bounds);
+
+  return cern_rectangle_create_with_ltrb(left, top, right, bottom);
+}
+
+static
+inline
+void
+cern_layout_utils_expand_regions_to_fill_bounds(CernRectangle bounds,
+                                                CernAnchorStyles region1_align,
+                                                CernRectangle *region1,
+                                                CernRectangle *region2) {
+  switch (region1_align) {
+    case CernAnchorStyles_Left: {
+      (*region1)
+        = cern_layout_utils_subtitute_specified_bounds(bounds,
+                                                       (*region1),
+                                                       CernAnchorStyles_Right);
+      (*region2)
+        = cern_layout_utils_subtitute_specified_bounds(bounds,
+                                                       (*region2),
+                                                       CernAnchorStyles_Left);
+    } break;
+    case CernAnchorStyles_Right: {
+      (*region1) 
+        = cern_layout_utils_subtitute_specified_bounds(bounds,
+                                                       (*region1),
+                                                       CernAnchorStyles_Left);
+      (*region2)
+        = cern_layout_utils_subtitute_specified_bounds(bounds,
+                                                       (*region2),
+                                                       CernAnchorStyles_Right);
+    } break;
+    case CernAnchorStyles_Top: {
+      (*region1)
+        = cern_layout_utils_subtitute_specified_bounds(bounds,
+                                                       (*region1),
+                                                       CernAnchorStyles_Bottom);
+      (*region2)
+        = cern_layout_utils_subtitute_specified_bounds(bounds,
+                                                       (*region2),
+                                                       CernAnchorStyles_Top);
+    } break;
+    case CernAnchorStyles_Bottom: {
+      (*region1)
+        = cern_layout_utils_subtitute_specified_bounds(bounds,
+                                                       (*region1),
+                                                       CernAnchorStyles_Top);
+      (*region2)
+        = cern_layout_utils_subtitute_specified_bounds(bounds,
+                                                       (*region2),
+                                                       CernAnchorStyles_Bottom);
+    } break;
+    default:
+      g_warning("%s(...): Unsupported value of region1_align.", __func__);
+    break;
+  }
+}
+
+static
+inline
+CernSize
+cern_layout_utils_sub_aligned_region_core(CernSize current_size,
+                                          CernSize content_size,
+                                          gboolean vertical) {
+  if (vertical) {
+    current_size.height -= content_size.height;
+  } else {
+    current_size.width -= content_size.width;
+  }
+
+  return current_size;
+}
+
+static
+inline
+CernSize
+cern_layout_utils_sub_aligned_region(CernSize current_size,
+                                     CernSize content_size,
+                                     CernTextImageRelation relation) {
+  return 
+    cern_layout_utils_sub_aligned_region_core(current_size,
+                                              content_size,
+                                              cern_layout_utils_is_vertical_relation(relation));
+}
+
+static
+inline
+CernRectangle
+cern_layout_utils_rtl_translate(CernRectangle bounds, CernRectangle within_bounds) {
+  bounds.x
+    = within_bounds.width - cern_rectangle_get_right(&within_bounds);
+  return bounds;
 }
 
 G_END_DECLS

@@ -84,6 +84,9 @@ cern_rectangle_set_size(CernRectangle *self, CernSize *size);
 CernPoint
 cern_rectangle_get_location(CernRectangle *self);
 
+void
+cern_rectangle_set_location(CernRectangle *self, CernPoint *location);
+
 gboolean
 cern_rectangle_is_empty(CernRectangle *self);
 
