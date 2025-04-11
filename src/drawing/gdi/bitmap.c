@@ -1,6 +1,5 @@
 #include "cern/drawing/color.h"
 #include "cern/drawing/bitmap.h"
-#include "cern/drawing/rectangle_f.h"
 
 #include "cern/drawing/internal/color_translator.h"
 #include "cern/drawing/internal/native_gdi_object.h"

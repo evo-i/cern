@@ -1,5 +1,5 @@
-#ifndef CERN_BITMAP_H
-#define CERN_BITMAP_H 1
+#ifndef CERN_DRAWING_BITMAP_H
+#define CERN_DRAWING_BITMAP_H 1
 
 #include <glib-object.h>
 
@@ -19,7 +19,8 @@ CernBitmap *
 cern_bitmap_new(guint32 width, guint32 height);
 
 CernBitmap *
-cern_bitmap_new_with_format(guint32 width, guint32 height, CernPixelFormat pixel_format);
+cern_bitmap_new_with_format(guint32 width, guint32 height,
+                            CernPixelFormat pixel_format);
 
 CernBitmap *
 cern_bitmap_new_from_file(const char *filename);
@@ -67,4 +68,4 @@ cern_bitmap_unlock_bits(CernBitmap *self, CernBitmapData *bitmap_data);
 
 G_END_DECLS
 
-#endif /* CERN_BITMAP_H */
+#endif /* CERN_DRAWING_BITMAP_H */
