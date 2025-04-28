@@ -772,7 +772,7 @@ cern_graphics_get_clip_bounds(CernGraphics *self);
 gboolean
 cern_graphics_is_clip_empty(CernGraphics *self);
 
-CernRectangleF *
+CernRectangleF
 cern_graphics_get_visible_clip_bounds(CernGraphics *self);
 
 gboolean

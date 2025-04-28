@@ -1,5 +1,5 @@
 #include "cern/drawing/drawing.h"
-#include <Windows.h>
+#include <windows.h>
 #include <stdio.h>
 #include <gdiplus.h>
 

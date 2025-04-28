@@ -3,7 +3,7 @@
 
 #include "cern/drawing/internal/native_gdi_object.h"
 
-#include <Windows.h>
+#include <windows.h>
 #include <gdiplus.h>
 
 typedef struct _CernBrushPrivate {
@@ -82,7 +82,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE(
   G_TYPE_OBJECT,
   G_ADD_PRIVATE(CernBrush)
   CERN_BRUSH_CLONEABLE()
-  CERN_BRUSH_NATIVE_GDI());
+  CERN_BRUSH_NATIVE_GDI())
 
 static
 void
@@ -97,6 +97,7 @@ cern_brush_class_init(CernBrushClass *klass) {
 static
 void
 cern_brush_init(CernBrush *self) {
+  (void) self;
   // Initialize instance variables here
 }
 
@@ -132,7 +133,6 @@ static
 void
 cern_brush_finalize(GObject *object) {
   CernBrush *self;
-  CernBrushPrivate *priv;
 
   self = CERN_BRUSH(object);
 

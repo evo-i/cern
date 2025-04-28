@@ -1,6 +1,6 @@
 #include "cern/drawing/imaging/bitmap_data.h"
 
-#include <Windows.h>
+#include <windows.h>
 #include <gdiplus.h>
 
 struct _CernBitmapData {

@@ -7,7 +7,7 @@ G_BEGIN_DECLS
 
 #define CERN_TYPE_HANDLE cern_handle_get_type()
 
-G_DECLARE_INTERFACE(CernHandle, cern_handle, CERN, HANDLE, GObject);
+G_DECLARE_INTERFACE(CernHandle, cern_handle, CERN, HANDLE, GObject)
 
 struct _CernHandleInterface {
   GTypeInterface parent_interface;

@@ -1,6 +1,6 @@
 #include "cern/drawing/color_palette.h"
 #include "cern/drawing/color.h"
-#include <Windows.h>
+#include <windows.h>
 #include <gdiplus.h>
 
 struct _CernColorPalette {

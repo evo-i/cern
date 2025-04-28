@@ -13,7 +13,7 @@
 #include "cern/drawing/internal/windows_font.h"
 #include "cern/drawing/point.h"
 
-#include <Windows.h>
+#include <windows.h>
 #include <gdiplus.h>
 #include <glib.h>
 #include <glibconfig.h>

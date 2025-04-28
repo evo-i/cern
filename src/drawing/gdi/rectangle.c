@@ -2,7 +2,7 @@
 #include "cern/drawing/point.h"
 #include "cern/drawing/size.h"
 
-G_DEFINE_BOXED_TYPE(CernRectangle, cern_rectangle, cern_rectangle_copy, cern_rectangle_free);
+G_DEFINE_BOXED_TYPE(CernRectangle, cern_rectangle, cern_rectangle_copy, cern_rectangle_free)
 
 CernRectangle *
 cern_rectangle_new(void) {

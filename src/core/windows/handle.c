@@ -1,10 +1,12 @@
 #include "cern/core/windows/handle.h"
 
-G_DEFINE_INTERFACE(CernHandle, cern_handle, G_TYPE_OBJECT);
+G_DEFINE_INTERFACE(CernHandle, cern_handle, G_TYPE_OBJECT)
 
 static
 void
-cern_handle_default_init(CernHandleInterface *iface) { }
+cern_handle_default_init(CernHandleInterface *iface) {
+  (void) iface;
+}
 
 gpointer
 cern_handle_get(gpointer self) {

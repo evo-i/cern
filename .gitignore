@@ -1,10 +1,6 @@
 /[Bb]uild/
 /.vscode/
-# /vendor/
 /.cache/
-/include/cern/net/
-/vendor/
+CMakeLists.txt
 main.c
-CMakePresets.json
-CMakeUserPresets.json
-compile_commands.json
+

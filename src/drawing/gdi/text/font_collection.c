@@ -2,7 +2,7 @@
 #include "cern/drawing/font_family.h"
 #include "cern/core/windows/handle.h"
 
-#include <Windows.h>
+#include <windows.h>
 #include <gdiplus.h>
 
 static

@@ -8,10 +8,8 @@
 #include "cern/drawing/2d/matrix.h"
 #include "cern/drawing/point_f.h"
 
-
-#include <Windows.h>
+#include <windows.h>
 #include <gdiplus.h>
-#include <gdiplus/gdiplusenums.h>
 
 #define NGDI_HANDLE(PTR)
 
@@ -74,7 +72,7 @@ cern_graphics_device_context_interface_init(CernIDeviceContextInterface *iface) 
 G_DEFINE_FINAL_TYPE_WITH_CODE(CernGraphics,
   cern_graphics,
   G_TYPE_OBJECT,
-  G_IMPLEMENT_INTERFACE(CERN_TYPE_IDEVICE_CONTEXT, cern_graphics_device_context_interface_init));
+  G_IMPLEMENT_INTERFACE(CERN_TYPE_IDEVICE_CONTEXT, cern_graphics_device_context_interface_init))
 
 void
 static
@@ -114,7 +112,9 @@ cern_graphics_class_init(CernGraphicsClass *klass) {
 
 void
 static
-cern_graphics_init(CernGraphics *self) { }
+cern_graphics_init(CernGraphics *self) {
+  (void) self;
+}
 
 void
 static
@@ -2915,13 +2915,24 @@ cern_graphics_draw_icon_unstretched(CernGraphics *self, CernIcon *icon,
 
 void
 cern_graphics_draw_image(CernGraphics *self, CernImage *image, CernPointF *point) {
-  g_critical("%s Not implemented", __func__);
+  cern_graphics_draw_image_xy(self, image, point->x, point->y);
 }
 
 void
 cern_graphics_draw_image_xy(CernGraphics *self, CernImage *image,
                             gfloat x, gfloat y) {
-  g_critical("%s Not implemented", __func__);
+  if (image == NULL) {
+    g_critical("%s: image cannot be NULL.", __func__);
+    return;
+  }
+
+  CernNativeGdiObject *image_object
+    = CERN_NATIVE_GDI_OBJECT(image);
+  gpointer image_handle
+    = cern_native_gdi_object_get_native_handle(image_object);
+
+  GpStatus status
+    = GdipDrawImage((GpGraphics *) self->handle, (GpImage *) image_handle, x, y);
 }
 
 void
@@ -3207,8 +3218,6 @@ cern_graphics_intersect_clip_rect_f(CernGraphics *self, CernRectangleF *rect) {
 void
 cern_graphics_exclude_clip_rect_f(CernGraphics *self, CernRectangleF *rect) {
   GpStatus status;
-  GpRegion *native;
-  CernNativeGdiObject *object;
   gfloat x, y, width, height;
 
   if (rect == NULL) {
@@ -3434,10 +3443,25 @@ cern_graphics_is_clip_empty(CernGraphics *self) {
   return is_empty != 0;
 }
 
-CernRectangleF *
+CernRectangleF
 cern_graphics_get_visible_clip_bounds(CernGraphics *self) {
-  g_critical("cern_graphics_get_visible_clip_bounds() is not implemented.");
-  return NULL;
+  GpRectF gp_rect = { 0 };
+  CernRectangleF rect = { 0 };
+
+  GpStatus status =
+    GdipGetClipBounds(self->handle, &gp_rect);
+
+  if (status != Ok) {
+    g_warning("GdipGetClipBounds() failed %d", status);
+    return rect;
+  }
+
+  rect.x = gp_rect.X;
+  rect.y = gp_rect.Y;
+  rect.width = gp_rect.Width;
+  rect.height = gp_rect.Height;
+
+  return rect;
 }
 
 gboolean
@@ -3643,6 +3667,7 @@ cern_graphics_begin_container(CernGraphics *self) {
     return NULL;
   }
 
+  context = cern_graphics_context_new(self);
   cern_graphics_context_set_state(context, state);
   cern_graphics_push_context(self, context);
 

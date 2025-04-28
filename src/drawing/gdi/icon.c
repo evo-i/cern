@@ -13,7 +13,7 @@
 #include "cern/drawing/rectangle.h"
 #include "cern/drawing/graphics.h"
 
-#include <Windows.h>
+#include <windows.h>
 #include <gdiplus.h>
 #include <assert.h>
 #include <wingdi.h>

@@ -3,7 +3,9 @@
 G_DEFINE_INTERFACE (CernICloneable, cern_i_cloneable, G_TYPE_OBJECT)
 
 static void
-cern_i_cloneable_default_init (CernICloneableInterface *iface) { }
+cern_i_cloneable_default_init (CernICloneableInterface *iface) {
+  (void) iface;
+}
 
 CernICloneable *
 cern_i_cloneable_clone(CernICloneable *self) {

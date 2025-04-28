@@ -2,7 +2,7 @@
 #include "cern/core/icloneable.h"
 #include "cern/drawing/internal/native_gdi_object.h"
 
-#include <Windows.h>
+#include <windows.h>
 #include <gdiplus.h>
 #include <gdiplus/gdiplusenums.h>
 #include <glibconfig.h>

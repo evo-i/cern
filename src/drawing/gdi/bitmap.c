@@ -4,7 +4,7 @@
 #include "cern/drawing/internal/color_translator.h"
 #include "cern/drawing/internal/native_gdi_object.h"
 
-#include <Windows.h>
+#include <windows.h>
 #include <gdiplus.h>
 
 #include <shlwapi.h>

@@ -3,6 +3,7 @@
 
 #include <glib-object.h>
 #include "../font_style.h"
+#include "glib.h"
 #include "windows_font_quality.h"
 
 G_BEGIN_DECLS
@@ -39,6 +40,9 @@ cern_windows_font_create_from_hdc(gpointer hdc);
 CernWindowsFont *
 cern_windows_font_create_from_h_font(gpointer h_font);
 
+CernWindowsFont *
+cern_windows_font_create_from_h_font_ex(gpointer h_font, gboolean take_ownership);
+
 gpointer
 cern_windows_font_get_h_font(CernWindowsFont *font);
 
@@ -72,6 +76,8 @@ cern_windows_font_get_size(CernWindowsFont *font);
 CernWindowsFontQuality
 cern_windows_font_quality_from_text_rendering_hint(CernGraphics *graphics);
 
+gboolean
+cern_windows_font_equals(CernWindowsFont *self, CernWindowsFont *other);
 
 G_END_DECLS
 

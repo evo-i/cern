@@ -5,7 +5,12 @@ G_DEFINE_BOXED_TYPE(CernSize, cern_size, cern_size_copy, cern_size_free)
 
 CernSize *
 cern_size_new (gint32 width, gint32 height) {
-  return g_new0(CernSize, 1);
+  CernSize *self = g_new0(CernSize, 1);
+
+  self->width = width;
+  self->height = height;
+
+  return self;
 }
 
 CernSize *

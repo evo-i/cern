@@ -24,7 +24,10 @@ typedef struct _devicemodeW DEVMODEW;
 
 #define CERN_TYPE_DEVICE_CONTEXT cern_device_context_get_type ()
 
-G_DECLARE_FINAL_TYPE(CernDeviceContext, cern_device_context, CERN, DEVICE_CONTEXT, GObject);
+G_DECLARE_FINAL_TYPE(CernDeviceContext,
+                     cern_device_context,
+                     CERN, DEVICE_CONTEXT,
+                     GObject)
 
 /**
  * @brief Creates a new CernDeviceContext object for a device context (DC).

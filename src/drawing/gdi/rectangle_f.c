@@ -3,7 +3,7 @@
 
 CernRectangleF
 cern_rectangle_f_create(void) {
-  return (CernRectangleF) { .0f };
+  return (CernRectangleF) { .0f, .0f, .0f, .0f };
 }
 
 CernRectangleF

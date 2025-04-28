@@ -11,7 +11,6 @@ G_DEFINE_TYPE(CernFrameDimension, cern_frame_dimension, G_TYPE_OBJECT)
 static
 void
 cern_frame_dimension_finalize(GObject *object) {
-  CernFrameDimension *self = CERN_FRAME_DIMENSION(object);
   G_OBJECT_CLASS(cern_frame_dimension_parent_class)->finalize(object);
 }
 
@@ -24,7 +23,9 @@ cern_frame_dimension_class_init(CernFrameDimensionClass *klass) {
 
 static
 void
-cern_frame_dimension_init(CernFrameDimension *self) { }
+cern_frame_dimension_init(CernFrameDimension *self) {
+  (void) self;
+}
 
 /* 6aedbd6d-3fb5-418a-83a6-7f45229dc872 */
 const GUID

@@ -6,7 +6,7 @@
 #include "cern/drawing/internal/windows_region.h"
 #include "cern/drawing/internal/native_gdi_object.h"
 
-#include <Windows.h>
+#include <windows.h>
 
 struct _CernWindowsRegion {
   GObject parent_instance;

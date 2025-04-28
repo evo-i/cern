@@ -1,7 +1,7 @@
 #include "cern/drawing/text/private_font_collection.h"
 #include "cern/core/windows/handle.h"
 
-#include <Windows.h>
+#include <windows.h>
 #include <gdiplus.h>
 
 struct _CernPrivateFontCollection {

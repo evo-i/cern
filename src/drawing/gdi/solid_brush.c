@@ -2,7 +2,7 @@
 #include "cern/drawing/solid_brush.h"
 #include "cern/drawing/internal/native_gdi_object.h"
 
-#include <Windows.h>
+#include <windows.h>
 #include <gdiplus.h>
 
 struct _CernSolidBrush {
